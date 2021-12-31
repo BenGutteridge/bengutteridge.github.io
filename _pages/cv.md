@@ -33,7 +33,7 @@ You can download a PDF copy of my CV [here](/files/pdf/Williams CV.pdf).
 * Worked on testing neural network mosquito classifier, and building/testing voice activity detector for removal of human speech from recordings (2020).
 
 **Bayesian Exploration Lab**, Oxford University (Sep 2020 – June 2021)
-* Fourth-year Masters project supervised by Prof. Michael Osborne (project report pdf available [here](files/Gutteridge_4YP.pdf)).
+* Fourth-year Masters project supervised by Prof. Michael Osborne (project report pdf available [here](../files/Gutteridge_4YP.pdf)).
 * Investigating the use of single-sample gradient estimators of evidence lower bound for variational inference, working with Edward Wagstaff.
  
  
