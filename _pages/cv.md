@@ -62,11 +62,11 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
   
 ## Extracurriculars
 ---
-**ML Project Leader, Engineers Without Borders Oxford** (Sep 2020 – Jun 2021)
+**ML Project Leader**, Engineers Without Borders Oxford (Sep 2020 – Jun 2021)
 * Responsible for organisation of COVID-19 medical image deep learning project.
 * Also served as Director of Partnerships (Aug 2019 – Jul 2020).
 
-**STEP UP Ambassador, New College Access & Outreach Dept.** (Nov 2017 – Jun 2020)
+**STEP UP Ambassador**, New College Access & Outreach Dept. (Nov 2017 – Jun 2020)
 * Ambassador to visiting state schools, leading tours and assisting with annotation of Oxford University admissions tests.
 
 **Coding proficiency**: MATLAB, Python, and data science libraries (inc. NumPy and PyTorch).
