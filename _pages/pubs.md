@@ -18,6 +18,11 @@ The ideal pub will be attractive inside and out, and will have a pleasant ambien
 The table below is sortable and searchable, and includes some features such as food, seating etc. (e.g. search 'beer garden'). 
 It is a work-in-progress and we hope to continue updating it regularly.
 
+We gratefully acknowledge the pioneering work of Martin, the author of [oxfordpubguide.co.uk](https://www.oxfordpubguide.co.uk/pub.html), which is, for my money, the perfect pub guide. 
+Unfortunately, it has not been updated since 2013; even more unfortunately, dozens of the pubs reviewed since he began the project in 1998 (the year I was born — Christ) 
+have since closed down. Many more have undergone significant changes in the years since the site last updated. It is my fervent wish that this guide serve as 
+the spiritual successor to Martin’s seminal online opus.
+
 ### Notes
 * The table can be a little temperamental on mobile; it can be accessed directly, and less problematically, 
 [here](https://script.google.com/macros/s/AKfycbyV1Fi0N1cTI4DJv20MrNndW-sXVUuYOTcXBEO8WW0e1eu2WKNiYFQ-2Grnldn-s3ACbw/exec).)
