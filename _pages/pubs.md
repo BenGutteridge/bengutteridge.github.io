@@ -18,6 +18,8 @@ The ideal pub will be attractive inside and out, and will have a pleasant ambien
 The table below is sortable and searchable, and includes some features such as food, seating etc. (e.g. search 'beer garden'). 
 It is a work-in-progress and we hope to continue updating it regularly.
 
+(The table can be a little temperamental on mobile; it can be accessed directly, and less problematically, [here](https://script.google.com/macros/s/AKfycbyV1Fi0N1cTI4DJv20MrNndW-sXVUuYOTcXBEO8WW0e1eu2WKNiYFQ-2Grnldn-s3ACbw/exec).)
+
 <iframe src="https://script.google.com/macros/s/AKfycbyV1Fi0N1cTI4DJv20MrNndW-sXVUuYOTcXBEO8WW0e1eu2WKNiYFQ-2Grnldn-s3ACbw/exec" 
 height="1500" width="150%"></iframe>
 
