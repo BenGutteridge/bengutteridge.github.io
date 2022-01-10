@@ -5,5 +5,9 @@ main:
 
   - title: "CV"
     url: /cv/
+ 
+  - title: "Oxford Pub Guide"
+    url: /pubs/
+
     
   

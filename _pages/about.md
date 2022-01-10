@@ -19,4 +19,5 @@ I am a member of the [HumBug](https://humbug.ox.ac.uk/) project, which uses deep
 flight tone using budget smartphones. I completed my MEng in Engineering Science, specialising in information engineering, at the University of 
 Oxford, and was supervised by Prof. Michael Osborne in my fourth-year project.
 
-<!--- test bit for commit -->
+In my spare time I enjoy exploring new pubs, especially those with real ale.
+I maintain a table of ratings and useful information about every pub in Oxford [here](/pubs/).
