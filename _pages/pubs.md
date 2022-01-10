@@ -16,9 +16,13 @@ Some may have unique features that set them apart, such as historical significan
 The ideal pub will be attractive inside and out, and will have a pleasant ambience conducive to a good time with friends, a wide and rotating range of real ales, and if you're feeling especially greedy, a fireplace.
 
 The table below is sortable and searchable, and includes some features such as food, seating etc. (e.g. search 'beer garden'). 
-It is a work-in-progress and we hope to continue updating it regularly. Pubs not yet visited are marked with 'n/a'.
+It is a work-in-progress and we hope to continue updating it regularly.
 
-(The table can be a little temperamental on mobile; it can be accessed directly, and less problematically, [here](https://script.google.com/macros/s/AKfycbyV1Fi0N1cTI4DJv20MrNndW-sXVUuYOTcXBEO8WW0e1eu2WKNiYFQ-2Grnldn-s3ACbw/exec).)
+### Notes
+* The table can be a little temperamental on mobile; it can be accessed directly, and less problematically, 
+[here](https://script.google.com/macros/s/AKfycbyV1Fi0N1cTI4DJv20MrNndW-sXVUuYOTcXBEO8WW0e1eu2WKNiYFQ-2Grnldn-s3ACbw/exec).)
+* Pubs not yet visited are marked with 'n/a'.
+* In the Location column we distinguish between 'Cowley', beyond Temple Cowley, and 'Cowley & Iffley Roads', the area just beyond Magdalen bridge, as both are often referred to as Cowley. 
 
 <iframe src="https://script.google.com/macros/s/AKfycbyV1Fi0N1cTI4DJv20MrNndW-sXVUuYOTcXBEO8WW0e1eu2WKNiYFQ-2Grnldn-s3ACbw/exec" 
 height="1500" width="150%"></iframe>
