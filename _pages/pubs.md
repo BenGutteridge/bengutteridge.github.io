@@ -7,7 +7,7 @@ title: "Oxford Pub Guide"
 ### [Oxford Pub Guide: A Primer](/pubs/background)
 -->
 
-As of January 2022, my friend Rob and I have, over the course of our time spent as students, been to 90 of the 98 pubs within the Oxford ringroad. 
+As of January 2022, my friend Rob and I have been to 90 of the 98 pubs within the Oxford ringroad. 
 We've attempted to rate every single pub on a 5-star scale, as well as provide other useful information.
 
 Pubs are assessed on a number of traits, primarily range and quality of drinks, decor, and ambience. 
