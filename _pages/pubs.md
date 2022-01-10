@@ -21,7 +21,7 @@ It is a work-in-progress and we hope to continue updating it regularly.
 ### Notes
 * The table can be a little temperamental on mobile; it can be accessed directly, and less problematically, 
 [here](https://script.google.com/macros/s/AKfycbyV1Fi0N1cTI4DJv20MrNndW-sXVUuYOTcXBEO8WW0e1eu2WKNiYFQ-2Grnldn-s3ACbw/exec).)
-* Pubs not yet visited are marked with 'n/a'.
+* Pubs not yet visited, or unknown fields, are marked with 'n/a'.
 * In the Location column we distinguish between 'Cowley', beyond Temple Cowley, and 'Cowley & Iffley Roads', the area just beyond Magdalen bridge, as both are often referred to as Cowley. 
 
 <iframe src="https://script.google.com/macros/s/AKfycbyV1Fi0N1cTI4DJv20MrNndW-sXVUuYOTcXBEO8WW0e1eu2WKNiYFQ-2Grnldn-s3ACbw/exec" 
