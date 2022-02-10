@@ -25,11 +25,11 @@ the spiritual successor to Martin’s seminal online opus.
 
 ### Notes
 * The table can be a little temperamental on mobile; it can be accessed directly, and less problematically, 
-[here](https://script.google.com/macros/s/AKfycbyBGyo3OW2_0YWdi58iwhQRHe6DbLMx3kGgbQJSJov4QTjrzmVzp7lBhRwM7JUENhyCCA/exec).)
+[here](https://script.google.com/macros/s/AKfycbzUWW0QWKD_qNyf5518wMtHL_qXADF_xqaasInNm3ZtAvuj4owHvvwXHFPRKv_GQ_Q5sA/exec.)
 * Pubs not yet visited, or unknown fields, are marked with 'n/a'.
 * In the Area column we distinguish between 'Cowley', beyond Temple Cowley, and 'Cowley & Iffley Roads', the area just beyond Magdalen bridge, as both are often referred to as Cowley. 
 * There are more than 94 entries as some pubs have permanently closed since the beginning of this project, and others are outside the ringroad (though still in the surrounding villages). Both are included for the sakes of preservation and information.
 
-<iframe src="https://script.google.com/macros/s/AKfycbyBGyo3OW2_0YWdi58iwhQRHe6DbLMx3kGgbQJSJov4QTjrzmVzp7lBhRwM7JUENhyCCA/exec" 
+<iframe src="https://script.google.com/macros/s/AKfycbzUWW0QWKD_qNyf5518wMtHL_qXADF_xqaasInNm3ZtAvuj4owHvvwXHFPRKv_GQ_Q5sA/exec" 
 height="1500" width="150%"></iframe>
 

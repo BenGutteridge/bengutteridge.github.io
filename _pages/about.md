@@ -11,9 +11,8 @@ redirect_from:
 I am a first-year DPhil candidate in the Machine Learning Research Group at the University of Oxford, and a member of the Autonomous Intelligent Machines and Systems Centre 
 for Doctoral Training ([AIMS CDT](https://aims.robots.ox.ac.uk/)). 
 
-My broad research interests are inductive biases in machine learning, and probabilistic ML, including ML on 
-graphs, geometric deep learning, Bayesian physics-informed neural networks, and latent force models, as well as Gaussian processes, Bayesian deep learning, variational inference 
-and probabilistic numerics (Bayesian optimisation/quadrature). 
+My broad research interests are in deep learning, reinforcement learning, and inductive biases, particularly through geometric deep learning/graph ML or physics/dynamics.
+I'm also interested in probabilistic methods including Bayesian deep learning, Gaussian processes, variational inference and probabilistic numerics (Bayesian optimisation/quadrature).
 
 I am a member of the [HumBug](https://humbug.ox.ac.uk/) project, which uses deep learning to detect and identify mosquito species by their 
 flight tone using budget smartphones. I completed my MEng in Engineering Science, specialising in information engineering, at the University of 
