@@ -7,7 +7,7 @@ redirect_from:
   - /resume
 ---
 
-<!--- 
+<!---
 <iframe src="/files/pdf/Williams CV.pdf" width="100%" height="500" frameborder="no" border="0" marginwidth="0" marginheight="0"></iframe>
 
 You can download a PDF copy of my CV [here](/files/pdf/Williams CV.pdf).
@@ -29,17 +29,17 @@ You can download a PDF copy of my CV [here](/files/pdf/Williams CV.pdf).
 **HumBug Project**, Machine Learning Research Group, Oxford University (Jun 2020 – Present)
 * Summer research placements supervised by Prof. Stephen Roberts.
 * Project concerns the use of low-cost smartphones and audio data analysis for the identification and tracking of mosquito species, for malaria prevention.
-* Working on codebase and obtaining experimental results for Bayesian NN species classification for [HumBugDB NeurIPS paper](https://arxiv.org/abs/2110.07607) (2021).
+* Working on codebase and obtaining experimental results for Bayesian NN species classification for [HumBugDB paper](https://arxiv.org/abs/2110.07607), accepted at NeurIPS 2021.
 * Worked on testing neural network mosquito classifier, and building/testing voice activity detector for removal of human speech from recordings (2020).
 
 **Bayesian Exploration Lab**, Oxford University (Sep 2020 – June 2021)
 * Fourth-year Masters project supervised by Prof. Michael Osborne (project report pdf available [here](../files/Gutteridge_4YP.pdf)).
 * Investigating the use of single-sample gradient estimators of evidence lower bound for variational inference, working with Edward Wagstaff.
- 
- 
+
+
 ## Publications
 ---
-[**HumBugDB: A Large-scale Acoustic Mosquito Dataset** (2021)](https://arxiv.org/abs/2110.07607) 
+[**HumBugDB: A Large-scale Acoustic Mosquito Dataset** (2021)](https://arxiv.org/abs/2110.07607)
 
 Accepted at the 35th Conference on Neural Information Processing Systems (NeurIPS 2021) Track on Datasets and Benchmarks.
 
@@ -56,10 +56,11 @@ Sinka, M.E., Zilli, D., Li, Y., Kiskin, I., Kirkham, D., Rafique, W., Wang, L., 
 ---
 Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 
-* Sponsored student, undertook two summer internships in RF, Secure Networks and Comms.
-* Worked with team developing Counter-UAV Radar system, completed projects in MATLAB, including developing tools for investigating calibration of a phased array radar.
+* Awarded student scholarship; undertook two summer internships in RF, Secure Networks and Comms
+* Worked with team developing Counter-UAV Radar system, completed projects in MATLAB including data analysis on Doppler signatures and calibration files of a phased array radar, and Monte Carlo simulation to find optimal calibrations.
 
-  
+
+
 ## Extracurriculars
 ---
 **ML Project Leader**, Engineers Without Borders Oxford (Sep 2020 – Jun 2021)
@@ -67,6 +68,11 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 * Also served as Director of Partnerships (Aug 2019 – Jul 2020).
 
 **STEP UP Ambassador**, New College Access & Outreach Dept. (Nov 2017 – Jun 2020)
-* Ambassador to visiting state schools, leading tours and assisting with annotation of Oxford University admissions tests.
+* Ambassador to visiting state schools, leading tours and assisting with annotation of admissions tests.
 
-**Coding proficiency**: MATLAB, Python, and data science libraries (inc. NumPy and PyTorch).
+## Skills
+
+* **Python**: experienced across a range of personal and academic projects, with data science (NumPy, SciPy, Pandas, etc.) and deep learning libraries (PyTorch, Jax/Flax).
+* **MATLAB**: experience working with during QinetiQ internships and for and undergraduate projects.
+Also completed IBM’s Coursera courses in Data Science and ML in Python, Data Analysis and Visualisation, and Databases with **SQL** (2019).
+Grade 8 Jazz Clarinet with Distinction, Trinity College London (2016).
