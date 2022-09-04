@@ -49,19 +49,19 @@ You can download a PDF copy of my CV [here](/files/pdf/Williams CV.pdf).
 Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 
 * Awarded student scholarship; undertook two summer internships in RF, Secure Networks and Comms
-* Worked with team developing Counter-UAV Radar system, completed projects in MATLAB including data analysis on Doppler signatures and calibration files of a phased array radar, and Monte Carlo simulation to find optimal calibrations.
+* Worked with team developing Counter-UAV Radar system, completed projects in MATLAB including data analysis on Doppler signatures and calibration files of a phased array radar, and used Monte Carlo simulation to find optimal calibrations.
 
 ## Extracurriculars
 ---
 **ML Project Leader**, *Engineers Without Borders Oxford* (Sep 2020 – Jun 2021)
-* Responsible for organisation of COVID-19 medical image deep learning project.
+* Led a team of ten in conducting a COVID-19 medical image deep learning project.
 * Also served as Director of Partnerships (Aug 2019 – Jul 2020).
 
 **STEP UP Ambassador**, *New College Oxford Access & Outreach Dept. (Nov 2017 – Jun 2020)
 * Ambassador to visiting state schools, leading tours and assisting with annotation of admissions tests.
 
 ## Skills
-
+---
 * **Python**: experienced across a range of personal and academic projects, with data science (NumPy, SciPy, Pandas, etc.) and deep learning libraries (PyTorch, Jax/Flax).
 * **MATLAB**: experience working with during QinetiQ internships and for and undergraduate projects.
 * Grade 8 Jazz Clarinet with Distinction, Trinity College London (2016).
