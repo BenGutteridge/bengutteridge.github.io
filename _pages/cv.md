@@ -19,21 +19,22 @@ You can download a PDF copy of my CV [here](/files/pdf/Williams CV.pdf).
 
 ## Education
 ---
-* **University of Oxford** (2021-2025): DPhil Engineering Science (expected)
+* **University of Oxford** (2021-2025): DPhil Engineering Science
 * **University of Oxford** (2017-2021): MEng Engineering Science (First class)
 <!---* A-Levels (2017): A*A*A*A | GCSEs (2015) 10 A*s, 2 As-->
 
 
 ## Research experience
 ---
-**Graph ML Project**, *Networks & Society Group, MLRG, Oxford University* (Aug 2022 - Present)
-* AIMS mini-project in delay differential equations applied with diffusion graph neural networks, supervised by Prof. Michael Bronstein and Prof. Xiaowen Dong.
+**Graph Rewiring Project**, *Networks & Society Group, MLRG, Oxford University* (Aug 2022 - Present)
+* Continuation of AIMS mini-project supervised by Francesco Di Giovanni, Michael Bronstein and Xiaowen Dong.
+* Developing a GNN message-passing framework that allows for adaptive information flow using dynamic rewiring and delayed propagation
 
-**Zero Shot Coordination Project**, *Foerster Lab for AI Research, Oxford University* (Apr 2022 – Present)
+**Zero Shot Coordination Project**, *Foerster Lab for AI Research, Oxford University* (Apr 2022 – Aug 2022)
 * AIMS mini-project investigating zero-shot coordination for continuous state-action spaces.
 * Experimentation with (multi-agent) reinforcement learning algorithms in accelerated physics engine, using Jax/Flax.
 
-**HumBug Project**, *Machine Learning Research Group, Oxford University* (Jun 2020 – Present)
+**HumBug Project**, *Machine Learning Research Group, Oxford University* (Jun 2020 – Sep 2021)
 * Summer research placements supervised by Prof. Stephen Roberts.
 * Project concerns the use of low-cost smartphones and audio data analysis for the identification and tracking of mosquito species, for malaria prevention.
 * Working on codebase and obtaining experimental results for Bayesian NN species classification for [HumBugDB paper](https://arxiv.org/abs/2110.07607), accepted at NeurIPS 2021.
