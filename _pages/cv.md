@@ -70,6 +70,13 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 
 ## Publications
 ---
+
+[**DRew: Dynamically Rewired Message Passing with Delay** (2023)](https://arxiv.org/abs/2305.08018)
+
+Accepted at the 40th International Conference on Machine Learning (ICML 2023), Honolulu, Hawaii, USA. PMLR 202, 2023
+
+**Gutteridge, B.**, Dong, X., Bronstein, M. and Di Giovanni, F., 2023
+
 [**HumBugDB: A Large-scale Acoustic Mosquito Dataset** (2021)](https://arxiv.org/abs/2110.07607)
 
 Accepted at the 35th Conference on Neural Information Processing Systems (NeurIPS 2021) Track on Datasets and Benchmarks.
