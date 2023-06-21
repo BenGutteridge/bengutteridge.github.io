@@ -1,5 +1,5 @@
 ---
-permalink: /DRew
+permalink: /DRew/
 title: "DRew: Dynamically Rewired Message Passing with Delay"
 ---
 
