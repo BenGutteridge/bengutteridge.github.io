@@ -1,5 +1,5 @@
 ---
-permalink: /terms/
+permalink: /drew/
 title: "DRew: Dynamically Rewired Message Passing with Delay"
 modified: 2023-06-21
 ---
