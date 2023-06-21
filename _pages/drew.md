@@ -1,6 +1,7 @@
 ---
-permalink: /DRew/
+permalink: /terms/
 title: "DRew: Dynamically Rewired Message Passing with Delay"
+modified: 2023-06-21
 ---
 
 This page contains information relating to our paper, "DRew: Dynamically Rewired Message Passing with Delay", accepted to ICML 2023.
