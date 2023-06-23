@@ -12,3 +12,5 @@ The repository containing all code required to run the experiments from the pape
 A blog post write-up of DRew can be found on Towards Data Science [here.](https://towardsdatascience.com/dynamically-rewired-delayed-message-passing-gnns-2d5ff18687c2)
 
 A recorded presentation of this work, given for the Learning on Graphs and Geometry (LoGG) reading group, can be found [here](https://m2d2.io/talks/logg) (coming soon!).
+
+Slides for the LoGG/ICML recorded presentation can be found [here.](../files/DRew_presentation_slides_ICML.pdf) 
