@@ -22,5 +22,6 @@ In my spare time I enjoy reading, playing D&D, and exploring new pubs, especiall
 I maintain a table of ratings and useful information about every pub in Oxford [here](/pubs/).
 
 # News
-23/4/2023: First-author paper, "[Dynamically Rewired Message Passing with Delay](https://arxiv.org/abs/2305.08018)", accepted at ICML 2023
-19/6/2023: [Presented DRew paper to Learning on Graphs and Geometry (LoGG) reading group](https://m2d2.io/talks/logg/drew-dynamically-rewired-message-passing-with-delay/)
+**23/4/2023:** First-author paper, "[Dynamically Rewired Message Passing with Delay](https://arxiv.org/abs/2305.08018)", accepted at ICML 2023
+
+**19/6/2023:** [Presented DRew paper to Learning on Graphs and Geometry (LoGG) reading group](https://m2d2.io/talks/logg/drew-dynamically-rewired-message-passing-with-delay/)
