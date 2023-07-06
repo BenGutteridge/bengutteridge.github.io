@@ -21,6 +21,8 @@ Oxford, and was supervised by Prof. Michael Osborne in my fourth-year project.
 In my spare time I enjoy reading, playing D&D, and exploring new pubs, especially those with real ale.
 I maintain a table of ratings and useful information about every pub in Oxford [here](/pubs/).
 
+---
+
 # News
 **23/4/2023:** First-author paper, "[Dynamically Rewired Message Passing with Delay](https://arxiv.org/abs/2305.08018)", accepted at ICML 2023
 
