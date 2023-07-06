@@ -28,7 +28,7 @@ You can download a PDF copy of my CV [here](/files/pdf/Williams CV.pdf).
 ---
 **Graph Rewiring Project**, *Networks & Society Group, MLRG, Oxford University* (Aug 2022 - Present)
 * Continuation of AIMS mini-project supervised by Francesco Di Giovanni, Michael Bronstein and Xiaowen Dong.
-* Developing a GNN message-passing framework that allows for adaptive information flow using dynamic rewiring and delayed propagation
+* Developing a GNN message-passing framework that allows for adaptive information flow using dynamic rewiring and delayed propagation. First-author paper, "[DRew: Dynamically Rewired Message Passing with Delay](https://arxiv.org/abs/2305.08018)", accepted to ICML 2023.
 
 **Zero Shot Coordination Project**, *Foerster Lab for AI Research, Oxford University* (Apr 2022 – Aug 2022)
 * AIMS mini-project investigating zero-shot coordination for continuous state-action spaces.
@@ -47,6 +47,12 @@ You can download a PDF copy of my CV [here](/files/pdf/Williams CV.pdf).
 
 ## Work experience
 ---
+Spring into Quant Finance, **G-Research** (Apr 2023)
+
+* Selected for competitive Spring Insights programme with training in ML, data science and finance; opportunities to network with senior researchers, and a summer internship fast-track.
+
+
+
 Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 
 * Awarded student scholarship; undertook two summer internships in RF, Secure Networks and Comms
