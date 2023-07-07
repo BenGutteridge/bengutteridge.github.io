@@ -24,6 +24,7 @@ I maintain a table of ratings and useful information about every pub in Oxford [
 ---
 
 # News
-**23/4/2023:** First-author paper, "[Dynamically Rewired Message Passing with Delay](https://arxiv.org/abs/2305.08018)", accepted at ICML 2023
 
-**19/6/2023:** [Presented DRew paper to Learning on Graphs and Geometry (LoGG) reading group](https://m2d2.io/talks/logg/drew-dynamically-rewired-message-passing-with-delay/)
+**19/6/2023:** Presented DRew paper to Learning on Graphs and Geometry (LoGG) reading group (recording [here](https://m2d2.io/talks/logg/drew-dynamically-rewired-message-passing-with-delay/)). Blog post based on DRew [published on Towards Data Science](https://towardsdatascience.com/dynamically-rewired-delayed-message-passing-gnns-2d5ff18687c2).
+
+**23/4/2023:** First-author paper, "[Dynamically Rewired Message Passing with Delay](https://arxiv.org/abs/2305.08018)", accepted at ICML 2023
