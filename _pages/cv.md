@@ -14,7 +14,7 @@ redirect_from:
 
 -->
 
-PDF copy of my CV available [here](/files/Gutteridge_CV.pdf).
+PDF copy of my CV available [here](/files/Gutteridge_CV_Aug_2023.pdf).
 
 {% include base_path %}
 
@@ -22,7 +22,7 @@ PDF copy of my CV available [here](/files/Gutteridge_CV.pdf).
 ---
 * **University of Oxford** (2021-2025): DPhil Engineering Science
 * **University of Oxford** (2017-2021): MEng Engineering Science (First class)
-<!---* A-Levels (2017): A*A*A*A | GCSEs (2015) 10 A*s, 2 As-->
+* A-Levels (2017): A\*A\*A\*A | GCSEs (2015) 10 A\*s, 2 As
 
 
 ## Research experience
@@ -50,8 +50,7 @@ PDF copy of my CV available [here](/files/Gutteridge_CV.pdf).
 ---
 Spring into Quant Finance, **G-Research** (Apr 2023)
 
-* Selected for competitive Spring Insights programme with training in ML, data science and finance; opportunities to network with senior researchers, and a summer internship fast-track.
-
+* Selected for competitive Spring Insights programme with training in ML, data science and finance; opportunities to network with senior researchers, and a summer internship fast-track opportunity.
 
 
 Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
@@ -62,11 +61,11 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 ## Extracurriculars
 ---
 **ML Project Leader**, *Engineers Without Borders Oxford* (Sep 2020 – Jun 2021)
-* Led a team of ten in conducting a COVID-19 medical image deep learning project.
+* Led a team of ten in conducting a biomedical data analysis project, using ML techniques for identification of seizures and extracting biological information from noisy data.
 * Also served as Director of Partnerships (Aug 2019 – Jul 2020).
 
 **STEP UP Ambassador**, *New College Oxford Access & Outreach Dept. (Nov 2017 – Jun 2020)
-* Ambassador to visiting state schools, leading tours and assisting with annotation of admissions tests.
+* AmState school ambassador; led tours of college, produced revision materials for Oxford entrance exam.
 
 ## Skills
 ---
