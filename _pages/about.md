@@ -26,7 +26,7 @@ I maintain a table of ratings and useful information about every pub in Oxford [
 # News
 **06/08/2023:** *DRew* covered in round-up blog post by [@michael_galkin](https://twitter.com/michael_galkin?lang=en): [Graph Machine Learning @ ICML 2023](https://towardsdatascience.com/graph-machine-learning-icml-2023-9b5e4306a1cc) 
 
-**28/07/2023:** *DRew* discussed in keynote talk by [@mmbronstein](https://twitter.com/mmbronstein) at Topology, Algebra, and Geometry (TAG) for ML workshop at ICML 2023.
+**28/07/2023:** *DRew* discussed in keynote talk by [@mmbronstein](https://twitter.com/mmbronstein) at [TAG-ML workshop](https://www.tagds.com/events/conference-workshops/tag-ml23) at ICML 2023.
 
 **19/06/2023:** Presented *DRew* to Learning on Graphs and Geometry (LoGG) reading group (recording [here](https://m2d2.io/talks/logg/drew-dynamically-rewired-message-passing-with-delay/)). Blog post based on DRew [published on Towards Data Science](https://towardsdatascience.com/dynamically-rewired-delayed-message-passing-gnns-2d5ff18687c2).
 
