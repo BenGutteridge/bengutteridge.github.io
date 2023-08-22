@@ -64,7 +64,7 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 * Led a team of ten in conducting a biomedical data analysis project, using ML techniques for identification of seizures and extracting biological information from noisy data.
 * Also served as Director of Partnerships (Aug 2019 – Jul 2020).
 
-**STEP UP Ambassador**, *New College Oxford Access & Outreach Dept. (Nov 2017 – Jun 2020)
+**STEP UP Ambassador**, *New College Oxford, Access & Outreach Dept.* (Nov 2017 – Jun 2020)
 * State school ambassador; led tours of college, produced revision materials for Oxford entrance exam.
 
 ## Skills
