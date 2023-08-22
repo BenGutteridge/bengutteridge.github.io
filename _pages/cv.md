@@ -22,7 +22,7 @@ PDF copy of my CV available [here](/files/Gutteridge_CV_Aug_2023.pdf).
 ---
 * **University of Oxford** (2021-2025): DPhil Engineering Science
 * **University of Oxford** (2017-2021): MEng Engineering Science (First class)
-* A-Levels (2017): A\*A\*A\*A \| GCSEs (2015) 10 A\*s, 2 As
+* A-Levels (2017): A\*A\*A\*A \| GCSEs (2015): 10 A\*s, 2 As
 
 
 ## Research experience
@@ -65,7 +65,7 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 * Also served as Director of Partnerships (Aug 2019 – Jul 2020).
 
 **STEP UP Ambassador**, *New College Oxford Access & Outreach Dept. (Nov 2017 – Jun 2020)
-* AmState school ambassador; led tours of college, produced revision materials for Oxford entrance exam.
+* State school ambassador; led tours of college, produced revision materials for Oxford entrance exam.
 
 ## Skills
 ---
