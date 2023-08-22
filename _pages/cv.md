@@ -22,7 +22,7 @@ PDF copy of my CV available [here](/files/Gutteridge_CV_Aug_2023.pdf).
 ---
 * **University of Oxford** (2021-2025): DPhil Engineering Science
 * **University of Oxford** (2017-2021): MEng Engineering Science (First class)
-<!-- * A-Levels (2017): A\*A\*A\*A | GCSEs (2015) 10 A\*s, 2 As -->
+* A-Levels (2017): A\*A\*A\*A \| GCSEs (2015) 10 A\*s, 2 As
 
 
 ## Research experience
