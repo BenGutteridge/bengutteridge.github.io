@@ -24,6 +24,10 @@ I maintain a table of ratings and useful information about every pub in Oxford [
 ---
 
 # News
+**10/06/2024:** Started internship in the Deep Learning team at QuantCo
+
+**03/03/2024:** Started Visiting Data Scientist internship at BCG X
+
 **06/08/2023:** *DRew* covered in round-up blog post by [@michael_galkin](https://twitter.com/michael_galkin?lang=en): [Graph Machine Learning @ ICML 2023](https://towardsdatascience.com/graph-machine-learning-icml-2023-9b5e4306a1cc) 
 
 **28/07/2023:** *DRew* discussed in keynote talk by [@mmbronstein](https://twitter.com/mmbronstein) at [TAG-ML workshop](https://www.tagds.com/events/conference-workshops/tag-ml23) at ICML 2023.
