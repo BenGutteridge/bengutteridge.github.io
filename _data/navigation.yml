@@ -6,11 +6,11 @@ main:
   - title: "CV"
     url: /cv/
 
-  - title: "DRew Homepage"
+  - title: "DRew"
     url: /drew/
  
   - title: "Oxford Pub Guide"
     url: /pubs/
-
-    
   
+  - title: "Blog Posts"
+    url: /year-archive/
