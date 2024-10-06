@@ -24,7 +24,7 @@ I maintain a table of ratings and useful information about every pub in Oxford [
 ---
 
 # News
-**10/06/2024:** Started internship in the Deep Learning team at QuantCo
+**10/06/2024:** Started internship in the Deep Learning team at [QuantCo](https://www.quantco.com/)
 
 **03/03/2024:** Started Visiting Data Scientist internship at BCG X
 
