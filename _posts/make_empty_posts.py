@@ -16,12 +16,13 @@ tags:
   - daily blog
 ---
 
+### Yesterday
+- NOTHING!
+
 ### TODO
 - FILL IN BLOG POST! 
 - BEN DIDN'T FILL IN HIS BLOG POST TODAY BECAUSE HE'S LAZY AND HE SUCKS!
 
-### Yesterday
-- 
 """
     # Convert the string arguments to datetime objects
     start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
