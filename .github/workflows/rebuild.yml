@@ -1,0 +1,18 @@
+name: Rebuild GitHub Pages
+
+on:
+  schedule:
+    # Rebuild every day at midnight (UTC)
+    - cron: '0 0 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build and deploy
+      run: |
+        git config --global user.name "bengutteridge"
+        git config --global user.email "benpgutteridge@gmail.com"
+        git commit --allow-empty -m "Trigger rebuild"
+        git push
