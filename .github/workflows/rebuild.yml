@@ -3,7 +3,8 @@ name: Rebuild GitHub Pages
 on:
   schedule:
     # Rebuild every day at midnight (UTC)
-    - cron: '0 0 * * *'
+    - cron: '5 8 * * *'
+
 
 jobs:
   build:
