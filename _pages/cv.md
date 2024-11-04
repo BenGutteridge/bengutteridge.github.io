@@ -14,7 +14,7 @@ redirect_from:
 
 -->
 
-PDF copy of my CV available [here](/files/Gutteridge_CV_Aug_2023.pdf).
+(Out of date) PDF copy of my CV available [here](/files/Gutteridge_CV_Mar_2024.pdf).
 
 {% include base_path %}
 
