@@ -20,16 +20,39 @@ PDF copy of my CV available [here](/files/Gutteridge_CV_Aug_2023.pdf).
 
 ## Education
 ---
-* **University of Oxford** (2021-2025): DPhil Engineering Science
+* **University of Oxford** (2021-2026): DPhil Engineering Science
 * **University of Oxford** (2017-2021): MEng Engineering Science (First class)
 * A-Levels (2017): A\*A\*A\*A \| GCSEs (2015): 10 A\*s, 2 As
 
-
-## Research experience
+## Industry
 ---
-**Graph Rewiring Project**, *Networks & Society Group, MLRG, Oxford University* (Aug 2022 - Present)
-* Continuation of AIMS mini-project supervised by Francesco Di Giovanni, Michael Bronstein and Xiaowen Dong.
-* Developing a GNN message-passing framework that allows for adaptive information flow using dynamic rewiring and delayed propagation. First-author paper, "[DRew: Dynamically Rewired Message Passing with Delay](https://arxiv.org/abs/2305.08018)", accepted to ICML 2023.
+Deep Learning Intern, **QuantCo** (Jun-Aug 2024)
+
+* Worked on internal research project investigating LLM reasoning over long-context documents; prompt engineering and fine-tuning with noisy, multimodal long document (~30+ pages) data
+
+
+Visiting Data Scientist, **BCG X** (Mar-May 2024)
+
+* Data science/consulting internship; worked on the 'Pathfinder' flight schedule optimiser for British Airways
+* Software engineering and data science in Python, working with front-end developers to implement user-controlled constraints and new features in the backend
+
+
+Spring into Quant Finance, **G-Research** (Apr 2023)
+
+* Selected for competitive Spring Insights programme with training in ML, data science and finance; opportunities to network with senior researchers, and a summer internship fast-track opportunity.
+
+
+Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
+
+* Awarded student scholarship; undertook two summer internships in RF, Secure Networks and Comms
+* Worked with team developing Counter-UAV Radar system, completed projects in MATLAB including data analysis on Doppler signatures and calibration files of a phased array radar, and used Monte Carlo simulation to find optimal calibrations.
+
+
+## Research
+---
+**Graph Neural Networks**, *Networks & Society Group, MLRG, Oxford University* (Aug 2022 - Present)
+* Ongoing research in collaboration with Francesco Di Giovanni, Michael Bronstein and Xiaowen Dong.
+* Developed a GNN message-passing framework that allows for adaptive information flow using dynamic rewiring and delayed propagation. First-author paper, "[DRew: Dynamically Rewired Message Passing with Delay](https://arxiv.org/abs/2305.08018)", accepted to ICML 2023.
 
 **Zero Shot Coordination Project**, *Foerster Lab for AI Research, Oxford University* (Apr 2022 – Aug 2022)
 * AIMS mini-project investigating zero-shot coordination for continuous state-action spaces.
@@ -45,18 +68,6 @@ PDF copy of my CV available [here](/files/Gutteridge_CV_Aug_2023.pdf).
 * MEng Masters project supervised by Prof. Michael Osborne (project report pdf available [here](../files/Gutteridge_4YP.pdf)).
 * Investigating the use of single-sample gradient estimators of evidence lower bound for variational inference, working with Edward Wagstaff.
 
-
-## Work experience
----
-Spring into Quant Finance, **G-Research** (Apr 2023)
-
-* Selected for competitive Spring Insights programme with training in ML, data science and finance; opportunities to network with senior researchers, and a summer internship fast-track opportunity.
-
-
-Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
-
-* Awarded student scholarship; undertook two summer internships in RF, Secure Networks and Comms
-* Worked with team developing Counter-UAV Radar system, completed projects in MATLAB including data analysis on Doppler signatures and calibration files of a phased array radar, and used Monte Carlo simulation to find optimal calibrations.
 
 ## Extracurriculars
 ---
