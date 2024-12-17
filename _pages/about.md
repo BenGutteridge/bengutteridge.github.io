@@ -28,6 +28,8 @@ I maintain a table of ratings and useful information about every pub in Oxford [
 ---
 
 # News
+**17/12/2024:** *Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription* accepted to the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25) in Philadelphia
+
 **10/06/2024:** Started internship in the Deep Learning team at [QuantCo](https://www.quantco.com/) working on DocAI and LLM long-context reasoning
 
 **03/03/2024:** Started Visiting Data Scientist internship at BCG X, working on the 'Pathfinder' flight schedule optimiser at British Airways
@@ -38,4 +40,4 @@ I maintain a table of ratings and useful information about every pub in Oxford [
 
 **19/06/2023:** Presented *DRew* to Learning on Graphs and Geometry (LoGG) reading group (recording [here](https://m2d2.io/talks/logg/drew-dynamically-rewired-message-passing-with-delay/)). Blog post based on DRew [published on Towards Data Science](https://towardsdatascience.com/dynamically-rewired-delayed-message-passing-gnns-2d5ff18687c2).
 
-**23/04/2023:** First-author paper, "[*DRew*: Dynamically Rewired Message Passing with Delay](https://arxiv.org/abs/2305.08018)", accepted at ICML 2023.
+**23/04/2023:** First-author paper, "[*DRew*: Dynamically Rewired Message Passing with Delay](https://arxiv.org/abs/2305.08018)", accepted to ICML 2023.

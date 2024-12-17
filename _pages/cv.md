@@ -61,7 +61,7 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 **HumBug Project**, *Machine Learning Research Group, Oxford University* (Jun 2020 – Sep 2021)
 * Summer research placements supervised by Prof. Stephen Roberts.
 * Project concerns the use of low-cost smartphones and audio data analysis for the identification and tracking of mosquito species, for malaria prevention.
-* Working on codebase and obtaining experimental results for Bayesian NN species classification for [HumBugDB paper](https://arxiv.org/abs/2110.07607), accepted at NeurIPS 2021.
+* Working on codebase and obtaining experimental results for Bayesian NN species classification for [HumBugDB paper](https://arxiv.org/abs/2110.07607), accepted to NeurIPS 2021.
 * Worked on testing neural network mosquito classifier, and building/testing voice activity detector for removal of human speech from recordings (2020).
 
 **Final Year Undergraduate Project**, *Bayesian Exploration Lab, Oxford University* (Sep 2020 – June 2021)
@@ -88,15 +88,21 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 ## Publications
 ---
 
+**Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription**
+
+Accepted to the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25), Philadelphia, Pennsylvania, USA, 2025
+
+**Benjamin Gutteridge**, Matthew Jackson, Toni Kukurin, Xiaowen Dong
+
 [**DRew: Dynamically Rewired Message Passing with Delay** (2023)](https://arxiv.org/abs/2305.08018)
 
-Accepted at the 40th International Conference on Machine Learning (ICML 2023), Honolulu, Hawaii, USA. PMLR 202, 2023
+Accepted to the 40th International Conference on Machine Learning (ICML 2023), Honolulu, Hawaii, USA. PMLR 202, 2023
 
 **Gutteridge, B.**, Dong, X., Bronstein, M. and Di Giovanni, F., 2023
 
 [**HumBugDB: A Large-scale Acoustic Mosquito Dataset** (2021)](https://arxiv.org/abs/2110.07607)
 
-Accepted at the 35th Conference on Neural Information Processing Systems (NeurIPS 2021) Track on Datasets and Benchmarks.
+Accepted to the 35th Conference on Neural Information Processing Systems (NeurIPS 2021) Track on Datasets and Benchmarks.
 
 Kiskin, I., Sinka, M., Cobb, A.D., Rafique, W., Wang, L., Zilli, D., **Gutteridge, B.**, Dam, R., Marinos, T., Li, Y. and Msaky, D., 2021. HumBugDB: A Large-scale Acoustic Mosquito Dataset. arXiv preprint arXiv:2110.07607.
 

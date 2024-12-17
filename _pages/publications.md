@@ -4,12 +4,18 @@ title: "Publications"
 permalink: /publications/
 author_profile: true
 ---
+### [Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription]
+
+Accepted to the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25), Philadelphia, Pennsylvania, USA, 2025
+
+**Benjamin Gutteridge**, Matthew Jackson, Toni Kukurin, Xiaowen Dong
+
 
 ### [DRew: Dynamically Rewired Message Passing with Delay (2023)](https://arxiv.org/abs/2305.08018)
 
 Accepted to the 40th International Conference on Machine Learning (ICML 2023), Honolulu, Hawaii, USA. PMLR 202, 2023
 
-**Gutteridge, B.**, Dong, X., Bronstein, M. and Di Giovanni, F., 2023
+**Benjamin Gutteridge**, Xiaowen Dong, Michael Bronstein, and Francesco Di Giovanni, 2023
 
 ### [HumBugDB: A Large-scale Acoustic Mosquito Dataset (2021)](https://arxiv.org/abs/2110.07607) 
 
