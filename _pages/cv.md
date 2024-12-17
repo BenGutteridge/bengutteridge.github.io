@@ -88,7 +88,7 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 ## Publications
 ---
 
-**Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription**
+**Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription** (2024)
 
 Accepted to the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25), Philadelphia, Pennsylvania, USA, 2025
 
