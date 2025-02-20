@@ -8,7 +8,7 @@ author_profile: true
 
 Under review at ICML 2025.
 
-Álvaro Arroyo*, Alessio Gravina*, **Benjamin Gutteridge**, Federico Barbero, Claudio Gallicchio, Xiaowen Dong, Michael Bronstein, Pierre Vandergheynst (* indicates equal contribution)
+Álvaro Arroyo\*, Alessio Gravina\*, **Benjamin Gutteridge**, Federico Barbero, Claudio Gallicchio, Xiaowen Dong, Michael Bronstein, Pierre Vandergheynst (\* indicates equal contribution)
 
 ### Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription (2024)
 
