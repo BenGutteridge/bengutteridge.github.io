@@ -10,9 +10,9 @@ Under review at ICML 2025.
 
 Álvaro Arroyo\*, Alessio Gravina\*, **Benjamin Gutteridge**, Federico Barbero, Claudio Gallicchio, Xiaowen Dong, Michael Bronstein, Pierre Vandergheynst (\* indicates equal contribution)
 
-### Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription (2024)
+### [Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription (2024)](https://arxiv.org/abs/2502.20295)
 
-Accepted to the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25), Philadelphia, Pennsylvania, USA, 2025
+Presented at the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25), Philadelphia, Pennsylvania, USA, 2025
 
 **Benjamin Gutteridge**, Matthew Jackson, Toni Kukurin, Xiaowen Dong
 
