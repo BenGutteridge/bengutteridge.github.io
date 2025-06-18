@@ -4,9 +4,15 @@ title: "Publications"
 permalink: /publications/
 author_profile: true
 ---
+### [On Measuring Long-Range Interactions in Graph Neural Networks (2025)](https://arxiv.org/abs/2506.05971)
+
+Accepted to the 42nd International Conference on Machine Learning (ICML 2025), Vancouver, Canada.
+
+Jacob Bamberger\*, **Benjamin Gutteridge**\*, Scott le Roux\*, Xiaowen Dong, Michael Bronstein (\* indicates equal contribution)
+
 ### [On Vanishing Gradients, Over-Smoothing, and Over-Squashing in GNNs: Bridging Recurrent and Graph Learning (2025)](https://arxiv.org/abs/2502.10818)
 
-Under review at ICML 2025.
+Under review at NeurIPS 2025
 
 Álvaro Arroyo\*, Alessio Gravina\*, **Benjamin Gutteridge**, Federico Barbero, Claudio Gallicchio, Xiaowen Dong, Michael Bronstein, Pierre Vandergheynst (\* indicates equal contribution)
 
