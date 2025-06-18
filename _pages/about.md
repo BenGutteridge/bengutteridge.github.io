@@ -29,7 +29,7 @@ I maintain a table of ratings and useful information about every pub in Oxford [
 
 **02/07/2025:** Started return internship in the Deep Learning team at [QuantCo](https://www.quantco.com/).
 
-**01/05/2025:** "[*On Measuring Long-Range Interactions in Graph Neural Networks](https://arxiv.org/abs/2506.05971)", a co-first-authored paper with Jacob Bamberger and Scott le Roux, accepted to ICML 2025.
+**01/05/2025:** "[On Measuring Long-Range Interactions in Graph Neural Networks](https://arxiv.org/abs/2506.05971)", a co-first-authored paper with Jacob Bamberger and Scott le Roux, accepted to ICML 2025.
 
 **17/12/2024:** *Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription* accepted to the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25) in Philadelphia
 
