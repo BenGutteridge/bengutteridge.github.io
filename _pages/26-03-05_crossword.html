@@ -1,0 +1,692 @@
+---
+layout: null
+permalink: /crossword/
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy 61st Birthday Dad</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,600;1,400&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #12100e;
+    --cream: #f4efe4;
+    --gold: #c9a84c;
+    --dark-gold: #7a5c1e;
+    --mid: #8b7355;
+    --dim: #c8bfad;
+    /* Fit 16 cols + ~28px wrapper padding into viewport width */
+    --cell: clamp(18px, calc((100vw - 52px) / 16), 40px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--black);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 10px 72px;
+    font-family: 'Spectral', serif;
+  }
+
+  header { text-align: center; margin-bottom: 24px; padding: 0 10px; }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: clamp(1.1rem, 4vw, 2.0rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .rule {
+    display: flex; align-items: center; gap: 12px; justify-content: center; margin: 8px 0;
+  }
+  .rule::before, .rule::after { content:''; height:1px; width:50px; background:var(--dark-gold); }
+  .sub { color:var(--mid); font-family:'DM Mono',monospace; font-size:0.66rem; letter-spacing:0.3em; text-transform:uppercase; }
+
+  .check-btn {
+    margin-top: 14px;
+    background: none;
+    border: 1px solid var(--dark-gold);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 8px 22px;
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+  }
+  .check-btn:hover { background: rgba(201,168,76,0.15); border-color: var(--gold); }
+
+  .check-msg {
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--mid);
+    min-height: 1.2em;
+  }
+  .check-msg.correct { color: #7dbf7d; }
+
+  /* Mobile: stack grid on top, clues below. Desktop: side by side. */
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    max-width: 1300px;
+    width: 100%;
+  }
+  @media (min-width: 900px) {
+    .main { flex-direction: row; align-items: flex-start; justify-content: center; }
+  }
+
+  /* GRID */
+  .grid-wrapper {
+    background: var(--cream);
+    padding: clamp(6px, 1.5vw, 14px);
+    border: 2px solid var(--gold);
+    box-shadow: 4px 4px 0 var(--dark-gold), 8px 8px 30px rgba(0,0,0,0.6);
+    flex-shrink: 0;
+    max-width: 100%;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(16, var(--cell));
+    grid-template-rows: repeat(17, var(--cell));
+    border-left: 2px solid #2a2010;
+    border-top: 2px solid #2a2010;
+  }
+
+  .cell {
+    width: var(--cell); height: var(--cell);
+    border-right: 2px solid #2a2010;
+    border-bottom: 2px solid #2a2010;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    background: #fff;
+    cursor: text;
+  }
+  .cell.black { background: #1a1008; cursor: default; }
+  .cell.highlight { background: #fef3cd; }
+  .cell.active-cell { background: #fde68a; }
+
+  /* Invisible input — font-size 16px prevents iOS auto-zoom on focus */
+  .cell input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: text;
+    font-size: 16px;
+    border: none;
+    background: transparent;
+    z-index: 2;
+    caret-color: transparent;
+  }
+
+  .cell-letter {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.5rem, calc(var(--cell) * 0.52), 1.05rem);
+    font-weight: 700;
+    color: #1a1008;
+    line-height: 1;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 1;
+    position: relative;
+  }
+  .cell-letter.user { color: #1a4a8a; }
+  .cell-letter.wrong { color: #cc3333; }
+
+  .cell-number {
+    position: absolute; top: 1px; left: 2px;
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(0.22rem, calc(var(--cell) * 0.22), 0.42rem);
+    color: #555; line-height: 1;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* CLUES */
+  .clues-panel {
+    width: 100%;
+    max-width: 700px;
+  }
+  @media (min-width: 900px) {
+    .clues-panel {
+      flex: 1;
+      min-width: 280px;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--dark-gold) transparent;
+    }
+  }
+
+  .clues-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+  }
+  @media (max-width: 500px) {
+    .clues-columns { grid-template-columns: 1fr; }
+  }
+
+  .clues-section h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 1.4rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--dark-gold);
+    padding-bottom: 7px;
+    margin-bottom: 12px;
+    padding-top: 4px;
+    position: sticky; top: 0;
+    background: var(--black);
+    z-index: 1;
+  }
+
+  .clue-list { list-style: none; margin-bottom: 24px; }
+
+  .clue-item {
+    display: flex; gap: 8px;
+    margin-bottom: 11px;
+    cursor: pointer;
+    padding: 6px 7px;
+    border-radius: 2px;
+    border-left: 2px solid transparent;
+    transition: all 0.12s;
+    touch-action: manipulation;
+  }
+  .clue-item:hover { background: rgba(201,168,76,0.1); border-left-color: var(--dark-gold); }
+  .clue-item.active { background: rgba(201,168,76,0.18); border-left-color: var(--gold); }
+
+  .clue-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem; color: var(--gold);
+    min-width: 26px; padding-top: 2px;
+    flex-shrink: 0; text-align: right;
+  }
+
+  .clue-text {
+    font-family: 'Spectral', serif;
+    font-size: 1.1rem; color: var(--dim); line-height: 1.55;
+  }
+  .clue-text em { font-style: italic; color: #7a6a50; font-size: 1rem; }
+
+  .cologne-name {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.05rem;
+    color: #c9a84c;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Happy 61st Birthday Dad</h1>
+  <div class="rule"><span class="sub">5/3/2026</span></div>
+  <button class="check-btn" onclick="checkAnswers()">✓ Check Answers</button>
+  <div class="check-msg" id="checkMsg"></div>
+</header>
+
+<div class="main">
+  <div class="grid-wrapper">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="clues-panel">
+    <div class="clues-columns">
+      <div class="clues-section">
+        <h2>Across</h2>
+        <ul class="clue-list" id="across-list"></ul>
+      </div>
+      <div class="clues-section">
+        <h2>Down</h2>
+        <ul class="clue-list" id="down-list"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const SOLUTION = [
+  "R","E","F","O","R","M"," "," ","S","O","F","T","S","P","O","T",
+  "E"," ","O"," ","A"," ","C"," "," "," ","R"," "," ","R"," ","W",
+  "V","E","R","T","I","G","O"," ","S","T","A","C","H","E"," ","I",
+  "E"," ","M"," ","L"," ","N"," ","A"," ","G"," "," ","J","U","T",
+  "L","O","U","T"," ","A","C","C","L","A","I","M"," ","U"," ","T",
+  "A"," ","L"," ","N"," ","O"," ","E"," ","L"," "," ","D","I","E",
+  "T"," ","A","N","A","G","R","A","M","M","E","D"," ","I"," ","R",
+  "I"," "," ","O","Z"," ","D"," "," "," "," ","I"," ","C"," "," ",
+  "O"," ","P","R","I","D","E"," "," ","D","I","C","K","E","N","S",
+  "N"," ","T"," "," "," "," "," "," "," "," ","K"," "," "," ","Q",
+  " ","M","A","T","H","S"," ","N","O","B","L","E","S"," "," ","U",
+  "R"," ","R"," ","E"," "," "," "," ","O"," ","N"," ","I","C","E",
+  "A"," ","M"," ","H"," "," ","P","O","L","I","S","H"," "," ","A",
+  "P","R","I","M","E"," "," ","U"," ","O"," "," "," "," "," ","M",
+  "T"," ","G"," "," ","T","A","R"," ","T"," ","S","I","N","A","I",
+  " ","H","A","M","M","E","R","S","M","I","T","H"," ","E"," ","S",
+  "T","A","N"," "," ","N","E","E"," ","E"," ","Y","O","U","T","H"
+];
+
+const COLS = 16, ROWS = 17;
+const STORAGE_KEY = 'birthday-crossword-dad-61';
+
+function isWhite(r, c) {
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return false;
+  return SOLUTION[r * COLS + c] !== ' ';
+}
+
+// User's entered letters — load from localStorage or blank
+let userGrid = Array(ROWS * COLS).fill('');
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) userGrid = JSON.parse(saved);
+} catch(e) {}
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(userGrid)); } catch(e) {}
+}
+
+// Number cells
+const cellNums = {};
+const numberedCells = {};
+let nn = 1;
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    if (!isWhite(r, c)) continue;
+    const sA = !isWhite(r, c-1) && isWhite(r, c+1);
+    const sD = !isWhite(r-1, c) && isWhite(r+1, c);
+    if (sA || sD) {
+      cellNums[`${r},${c}`] = nn;
+      numberedCells[nn] = { r, c, sA, sD };
+      nn++;
+    }
+  }
+}
+
+// Clues
+const clueData = {
+  across: {
+    1:  { clue: "Crooked former banker's political comeback", len: "6" },
+    4:  { clue: "More ass (pronounced) under belly", len: "4,4" },
+    9:  { clue: "Nice green, I go giddy over it!", len: "7" },
+    10: { clue: "Hiding place reportedly right under my nose", len: "6" },
+    11: { clue: "Stick out! Start Sir, start or leave the joust!", len: "3" },
+    12: { clue: "No sympathy for rowdy outlaw and ruffian", len: "4" },
+    13: { clue: "Good job is clam chowder with CIA balls-up", len: "7" },
+    15: { clue: "Starve from Atkins, skipping tea", len: "3" },
+    16: { clue: "Puzzled Gran, Adam and me", len: "10" },
+    19: { clue: "Fantastic place on the other side of the world", len: "2" },
+    20: { clue: "Partial differential equation with real and imaginary variables inside? It's a deadly sin", len: "5" },
+    21: { clue: "Our mutual friend collapsed, sickened after taking ecstasy", len: "7" },
+    23: { clue: "First halves made, then second — how many were made in total?", len: "5" },
+    25: { clue: "Near-broke royals", len: "6" },
+    28: { clue: "Trump's private army; chilling stuff", len: "3" },
+    29: { clue: "Paint old ship at sea after scrubbing end to end", len: "6" },
+    30: { clue: "Unsliceable melons start turning ripe outside", len: "5" },
+    31: { clue: "Tickle rat, torture with feather", len: "3" },
+    33: { clue: "Get your stone tablets here! Like stealing, all inventory 90% off!", len: "5" },
+    35: { clue: "Smithy curt after nail-biter by Fulham", len: "11" },
+    36: { clue: "You are bottom-out, of course, over a sin. Turn around for spank", len: "3" },
+    37: { clue: "Previously five away from breaking even", len: "3" },
+    38: { clue: "Lad can go in my outhouse", len: "5" },
+  },
+  down: {
+    1:  { clue: "Apocalyptic quaking in elevator", len: "10" },
+    2:  { clue: "Fuck 'moral'; fuck you, system", len: "7" },
+    3:  { clue: "Protest liar angrily", len: "4" },
+    5:  { clue: "Patching holes in roof; turnaround quick, might not hold together", len: "7" },
+    6:  { clue: "Jaundiced without, and, at the outset, rude, per bigotry", len: "9" },
+    7:  { clue: "Elon's W", len: "7" },
+    8:  { clue: "Subtle message received, unechoed encore — plane to see before being heard", len: "8" },
+    10: { clue: "Meals on wheels, say — which city?", len: "5" },
+    14: { clue: "Fascist leaders not invested all-round; burn dictionary but leave start and end intact", len: "4" },
+    17: { clue: "Neither wizard's friend bewitched", len: "3" },
+    18: { clue: "Devastating dropkick ends hard times", len: "7" },
+    20: { clue: "India joins planetwide arms embargos going ahead, NATO leaders grouse", len: "9" },
+    22: { clue: "Prudish agrarian Christians pre-eminent knee-deep squelchers", len: "9" },
+    24: { clue: "MJ says his pronouns", len: "4" },
+    26: { clue: "Starts being on lookout; this is not a Western; they wring cowboys' necks", len: "4,3" },
+    27: { clue: "Ecstatic sip of tea after work for Eminem", len: "4" },
+    29: { clue: "You dropped out of chase for oft-stolen bag", len: "5" },
+    31: { clue: "Hot ex", len: "3" },
+    33: { clue: "Short, and shrinking!", len: "3" },
+    34: { clue: `New in cologne: <span class="cologne-name">Union</span>`, len: "3", rawHTML: true },
+    35: { clue: "Insides all drained out from haemophilia. LOL", len: "2" },
+  }
+};
+
+// ── BUILD GRID ──────────────────────────────────────────────────────────────
+const gridEl = document.getElementById('grid');
+const cellEls = []; // parallel to SOLUTION
+
+// Track active cell and direction
+let activeCellIdx = -1;
+let activeDir = 'across'; // 'across' or 'down'
+let activeClueEl = null;
+
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const idx = r * COLS + c;
+    const cell = document.createElement('div');
+    const white = SOLUTION[idx] !== ' ';
+    cell.className = 'cell' + (white ? '' : ' black');
+    cell.dataset.idx = idx;
+    cell.dataset.r = r;
+    cell.dataset.c = c;
+
+    if (white) {
+      const num = cellNums[`${r},${c}`];
+      if (num) {
+        const s = document.createElement('span');
+        s.className = 'cell-number';
+        s.textContent = num;
+        cell.appendChild(s);
+      }
+
+      // Invisible input for capturing keystrokes on mobile & desktop
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.maxLength = 2; // allow 2 so we can detect new char vs old
+      inp.autocomplete = 'off';
+      inp.autocorrect = 'off';
+      inp.autocapitalize = 'characters';
+      inp.spellcheck = false;
+      cell.appendChild(inp);
+
+      // Visible letter display
+      const l = document.createElement('span');
+      l.className = 'cell-letter user';
+      l.textContent = userGrid[idx] || '';
+      cell.appendChild(l);
+
+      // Click: focus this cell, scroll clue panel to the relevant clue
+      cell.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        if (activeCellIdx === idx) {
+          // Second click on same cell: toggle direction
+          activeDir = activeDir === 'across' ? 'down' : 'across';
+        }
+        focusCell(idx, true);
+      });
+
+      inp.addEventListener('focus', () => focusCell(idx, false));
+
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          e.preventDefault();
+          if (userGrid[idx]) {
+            userGrid[idx] = '';
+            renderCell(idx);
+            save();
+          } else {
+            moveCaret(-1);
+          }
+        } else if (e.key === 'Delete') {
+          e.preventDefault();
+          userGrid[idx] = '';
+          renderCell(idx);
+          save();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault(); activeDir = 'across'; moveCaret(1);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault(); activeDir = 'across'; moveCaret(-1);
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault(); activeDir = 'down'; moveCaret(1);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault(); activeDir = 'down'; moveCaret(-1);
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          moveToNextWord(e.shiftKey ? -1 : 1);
+        }
+      });
+
+      inp.addEventListener('input', (e) => {
+        // Grab whatever was typed — could be 1 or 2 chars if there was an old value
+        const val = inp.value.replace(/[^a-zA-Z]/g, '');
+        // Take the last character typed
+        const ch = val.slice(-1).toUpperCase();
+        inp.value = ''; // clear so next keypress registers cleanly
+        if (!ch) return;
+        userGrid[idx] = ch;
+        renderCell(idx);
+        save();
+        moveCaret(1);
+      });
+    }
+
+    gridEl.appendChild(cell);
+    cellEls.push(cell);
+  }
+}
+
+function renderCell(idx) {
+  const cell = cellEls[idx];
+  if (!cell || SOLUTION[idx] === ' ') return;
+  const l = cell.querySelector('.cell-letter');
+  if (!l) return;
+  l.textContent = userGrid[idx] || '';
+  l.className = 'cell-letter user'; // reset any wrong styling
+}
+
+// ── FOCUS / NAVIGATION ───────────────────────────────────────────────────────
+function getCellIdx(r, c) { return r * COLS + c; }
+
+function focusCell(idx, scrollToClue = false) {
+  if (idx < 0 || idx >= SOLUTION.length) return;
+  const r = Math.floor(idx / COLS), c = idx % COLS;
+  if (!isWhite(r, c)) return;
+
+  activeCellIdx = idx;
+
+  // Highlight word (scroll to clue only when requested)
+  highlightActiveWord(scrollToClue);
+
+  // Actually focus the hidden input
+  const inp = cellEls[idx] ? cellEls[idx].querySelector('input') : null;
+  if (inp) { inp.value = ''; inp.focus({ preventScroll: true }); }
+}
+
+function highlightActiveWord(scrollToClue) {
+  // Clear all
+  cellEls.forEach(el => { el.classList.remove('highlight', 'active-cell'); });
+  if (activeClueEl) activeClueEl.classList.remove('active');
+
+  if (activeCellIdx < 0) return;
+  const r = Math.floor(activeCellIdx / COLS), c = activeCellIdx % COLS;
+
+  cellEls[activeCellIdx].classList.add('active-cell');
+
+  // Find word start in activeDir
+  let clueNum = null;
+  if (activeDir === 'across') {
+    let cc = c;
+    while (isWhite(r, cc - 1)) cc--;
+    let tc = cc;
+    while (isWhite(r, tc)) {
+      if (tc !== c) cellEls[getCellIdx(r, tc)].classList.add('highlight');
+      tc++;
+    }
+    clueNum = cellNums[`${r},${cc}`];
+    setActiveClue(clueNum, 'across', scrollToClue);
+  } else {
+    let rr = r;
+    while (isWhite(rr - 1, c)) rr--;
+    let tr = rr;
+    while (isWhite(tr, c)) {
+      if (tr !== r) cellEls[getCellIdx(tr, c)].classList.add('highlight');
+      tr++;
+    }
+    clueNum = cellNums[`${rr},${c}`];
+    setActiveClue(clueNum, 'down', scrollToClue);
+  }
+}
+
+function setActiveClue(num, dir, doScroll) {
+  if (!num) return;
+  const listId = dir === 'across' ? 'across-list' : 'down-list';
+  const li = document.querySelector(`#${listId} [data-num="${num}"]`);
+  if (!li) return;
+  if (activeClueEl) activeClueEl.classList.remove('active');
+  activeClueEl = li;
+  li.classList.add('active');
+  if (doScroll) li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function moveCaret(delta) {
+  if (activeCellIdx < 0) return;
+  const r = Math.floor(activeCellIdx / COLS), c = activeCellIdx % COLS;
+  if (activeDir === 'across') {
+    let nc = c + delta;
+    while (nc >= 0 && nc < COLS && !isWhite(r, nc)) nc += delta;
+    if (nc >= 0 && nc < COLS && isWhite(r, nc)) focusCell(getCellIdx(r, nc), false);
+  } else {
+    let nr = r + delta;
+    while (nr >= 0 && nr < ROWS && !isWhite(nr, c)) nr += delta;
+    if (nr >= 0 && nr < ROWS && isWhite(nr, c)) focusCell(getCellIdx(nr, c), false);
+  }
+}
+
+function moveToNextWord(delta) {
+  // Collect all word starts in reading order
+  const words = [];
+  for (const [num, info] of Object.entries(numberedCells).sort((a,b) => Number(a[0])-Number(b[0]))) {
+    if (info.sA) words.push({ r: info.r, c: info.c, dir: 'across' });
+    if (info.sD) words.push({ r: info.r, c: info.c, dir: 'down' });
+  }
+  // Find current
+  const r = Math.floor(activeCellIdx / COLS), c = activeCellIdx % COLS;
+  let cur = -1;
+  // find word start of current word
+  let startR = r, startC = c;
+  if (activeDir === 'across') { while (isWhite(startR, startC - 1)) startC--; }
+  else { while (isWhite(startR - 1, startC)) startR--; }
+  for (let i = 0; i < words.length; i++) {
+    if (words[i].r === startR && words[i].c === startC && words[i].dir === activeDir) { cur = i; break; }
+  }
+  const next = ((cur + delta) + words.length) % words.length;
+  activeDir = words[next].dir;
+  focusCell(getCellIdx(words[next].r, words[next].c), true);
+}
+
+// ── CLUE LIST CLICK ──────────────────────────────────────────────────────────
+function buildList(listEl, clues, dir) {
+  Object.keys(clues).map(Number).sort((a, b) => a - b).forEach(num => {
+    const { clue, len } = clues[num];
+    const li = document.createElement('li');
+    li.className = 'clue-item';
+    li.dataset.num = num;
+    li.dataset.dir = dir;
+    li.innerHTML = `<span class="clue-num">${num}</span><span class="clue-text">${clue} <em>(${len})</em></span>`;
+    li.addEventListener('click', () => {
+      const info = numberedCells[num];
+      if (!info) return;
+      activeDir = dir;
+      focusCell(getCellIdx(info.r, info.c), true);
+      // Also scroll the grid cell into view so you can see where you are
+      cellEls[getCellIdx(info.r, info.c)].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    listEl.appendChild(li);
+  });
+}
+
+buildList(document.getElementById('across-list'), clueData.across, 'across');
+buildList(document.getElementById('down-list'), clueData.down, 'down');
+
+// ── CHECK ANSWERS ────────────────────────────────────────────────────────────
+function checkAnswers() {
+  // For each word entry, check if all letters are correct
+  // First, find which cells belong to at least one correct word
+  const correctCells = new Set();
+
+  const allWords = [];
+  for (const [numStr, info] of Object.entries(numberedCells)) {
+    const num = Number(numStr);
+    if (info.sA) {
+      const cells = [];
+      let cc = info.c;
+      while (isWhite(info.r, cc)) { cells.push(getCellIdx(info.r, cc)); cc++; }
+      allWords.push(cells);
+    }
+    if (info.sD) {
+      const cells = [];
+      let rr = info.r;
+      while (isWhite(rr, info.c)) { cells.push(getCellIdx(rr, info.c)); rr++; }
+      allWords.push(cells);
+    }
+  }
+
+  let allCorrect = true;
+
+  for (const cells of allWords) {
+    const wordCorrect = cells.every(idx => {
+      const entered = (userGrid[idx] || '').toUpperCase();
+      const answer = SOLUTION[idx].toUpperCase();
+      return entered === answer;
+    });
+
+    if (wordCorrect) {
+      cells.forEach(idx => correctCells.add(idx));
+    } else {
+      allCorrect = false;
+    }
+  }
+
+  // Now apply: cells not in any correct word AND not already empty → clear
+  for (let idx = 0; idx < SOLUTION.length; idx++) {
+    if (SOLUTION[idx] === ' ') continue;
+    const cell = cellEls[idx];
+    const l = cell.querySelector('.cell-letter');
+    if (!l) continue;
+
+    if (correctCells.has(idx)) {
+      // Keep letter, style as confirmed correct
+      l.className = 'cell-letter'; // dark/default = confirmed
+    } else {
+      // Clear the letter
+      userGrid[idx] = '';
+      l.textContent = '';
+      l.className = 'cell-letter user';
+    }
+  }
+
+  save();
+
+  const msg = document.getElementById('checkMsg');
+  if (allCorrect) {
+    msg.textContent = '✓ Congratulations — all correct!';
+    msg.className = 'check-msg correct';
+  } else {
+    msg.textContent = 'Incorrect words cleared. Keep going!';
+    msg.className = 'check-msg';
+  }
+  setTimeout(() => { msg.textContent = ''; msg.className = 'check-msg'; }, 4000);
+}
+
+// ── INIT: render saved letters ───────────────────────────────────────────────
+for (let idx = 0; idx < SOLUTION.length; idx++) {
+  if (SOLUTION[idx] !== ' ' && userGrid[idx]) {
+    const cell = cellEls[idx];
+    const l = cell ? cell.querySelector('.cell-letter') : null;
+    if (l) l.textContent = userGrid[idx];
+  }
+}
+</script>
+</body>
+</html>
