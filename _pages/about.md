@@ -8,36 +8,37 @@ redirect_from:
   - /about.html
 ---
 
-I am a fourth-year DPhil student in the Machine Learning Research Group at the University of Oxford, and a member of the Autonomous Intelligent Machines and Systems Centre for Doctoral Training ([AIMS CDT](https://aims.robots.ox.ac.uk/)). 
+I am a final-year DPhil student in the Machine Learning Research Group at the University of Oxford, and a member of the Autonomous Intelligent Machines and Systems Centre for Doctoral Training ([AIMS CDT](https://aims.robots.ox.ac.uk/)). 
 I am supervised by Xiaowen Dong and Michael Bronstein.
 
-My research interests include:
-- Graph neural networks (message passing NNs and graph Transformers), particularly long-range interactions and the over-smoothing and -squashing problems
-- LLMs, particularly in-context learning and long-context
-- AI for document processing
-- Deep learning for biology
-- Inductive biases in deep learning
+My research is broadly focused on graph neural networks (GNNs) and LLMs, in particular:
+- Message-passing neural networks, graph Transformers, and their properties
+- Long-range interactions and the effective measurement of range in GNNs
+- LLMs, particularly for long contexts
+- AI for document processing, including OCR/transcription, particulary with multi-modal LLMs
 
 I previously worked on the [HumBug](https://humbug.ox.ac.uk/) project, which uses deep learning to detect and identify mosquito species by their
 flight tone using budget smartphones. I completed my MEng in Engineering Science, specialising in information engineering, at the University of
-Oxford, and was supervised by Michael Osborne in my fourth-year project.
+Oxford, and was supervised by Michael Osborne in my final-year project.
 
-In my spare time I enjoy [books](https://www.goodreads.com/user/show/43932939-ben-gutteridge), [films](https://letterboxd.com/bengutteridge/), playing D&D, and exploring new pubs, especially those with real ale.
+In my spare time I enjoy [reading books](https://www.goodreads.com/user/show/43932939-ben-gutteridge), [watching films](https://letterboxd.com/bengutteridge/), playing and GMing D&D and other TTRPGs, and exploring new pubs, especially those with real ale.
 I maintain a table of ratings and useful information about every pub in Oxford [here](/pubs/).
 
 ---
+
+**02/03/2026:** *"Can Graph Foundation Models Generalize Over Architecture?"* accepted to the ICLR-26 Workshop on Geometry-grounded Representation Learning and Generative Modeling (GRaM) in Rio de Janeiro as a full-length PMLR proceedings paper.
 
 **02/07/2025:** Started return internship in the Deep Learning team at [QuantCo](https://www.quantco.com/).
 
 **01/05/2025:** "[On Measuring Long-Range Interactions in Graph Neural Networks](https://arxiv.org/abs/2506.05971)", a co-first-authored paper with Jacob Bamberger and Scott le Roux, accepted to ICML 2025.
 
-**17/12/2024:** *Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription* accepted to the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25) in Philadelphia
+**17/12/2024:** *Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription* accepted to the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25) in Philadelphia.
 
-**10/06/2024:** Started internship in the Deep Learning team at [QuantCo](https://www.quantco.com/) working on DocAI and LLM long-context reasoning
+**10/06/2024:** Started internship in the Deep Learning team at [QuantCo](https://www.quantco.com/) working on DocAI and LLM long-context reasoning.
 
-**03/03/2024:** Started Visiting Data Scientist internship at BCG X, working on the 'Pathfinder' flight schedule optimiser at British Airways
+**03/03/2024:** Started Visiting Data Scientist internship at BCG X, working on the 'Pathfinder' flight schedule optimiser at British Airways.
 
-**06/08/2023:** *DRew* covered in round-up blog post by [@michael_galkin](https://twitter.com/michael_galkin?lang=en): [Graph Machine Learning @ ICML 2023](https://towardsdatascience.com/graph-machine-learning-icml-2023-9b5e4306a1cc) 
+**06/08/2023:** *DRew* covered in round-up blog post by [@michael_galkin](https://twitter.com/michael_galkin?lang=en): [Graph Machine Learning @ ICML 2023](https://towardsdatascience.com/graph-machine-learning-icml-2023-9b5e4306a1cc).
 
 **28/07/2023:** *DRew* discussed in keynote talk by [@mmbronstein](https://twitter.com/mmbronstein) at [TAG-ML workshop](https://www.tagds.com/events/conference-workshops/tag-ml23) at ICML 2023.
 

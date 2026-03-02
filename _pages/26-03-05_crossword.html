@@ -257,7 +257,15 @@ permalink: /crossword/
   <div class="rule"><span class="sub">5/3/2026</span></div>
   <button class="check-btn" onclick="checkAnswers()">✓ Check Answers</button>
   <div class="check-msg" id="checkMsg"></div>
-  <a href="/crossword/solutions/" class="solutions-link">Solutions & Explanations ⚠ Spoilers</a>
+  <a href="/crossword/solutions/" class="solutions-link" id="solutionsLink">Solutions & Explanations ⚠ Spoilers</a>
+  <div class="check-msg" id="spoilerMsg" style="display:none;">
+    Spoiler alert! Are you sure you want to see the solved crossword?
+    <span style="margin-left:10px;">
+      <a href="/crossword/solutions/" style="color:var(--gold);font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;">Yes, show me</a>
+      &nbsp;/&nbsp;
+      <span style="cursor:pointer;color:var(--mid);font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;" id="spoilerCancel">Cancel</span>
+    </span>
+  </div>
 </header>
 
 <div class="main">
@@ -695,6 +703,18 @@ function checkAnswers() {
   }
   setTimeout(() => { msg.textContent = ''; msg.className = 'check-msg'; }, 4000);
 }
+
+// ── SPOILER CONFIRMATION ─────────────────────────────────────────────────────
+document.getElementById('solutionsLink').addEventListener('click', (e) => {
+  const msg = document.getElementById('spoilerMsg');
+  if (msg.style.display === 'none') {
+    e.preventDefault();
+    msg.style.display = '';
+  }
+});
+document.getElementById('spoilerCancel').addEventListener('click', () => {
+  document.getElementById('spoilerMsg').style.display = 'none';
+});
 
 // ── INIT: render saved letters ───────────────────────────────────────────────
 for (let idx = 0; idx < SOLUTION.length; idx++) {

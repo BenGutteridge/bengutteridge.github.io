@@ -14,7 +14,7 @@ redirect_from:
 
 -->
 
-PDF copy of my CV available [here](/files/Gutteridge_CV_July_2025.pdf).
+PDF copy of my CV available [here](/files/Gutteridge_CV_Mar_2026.pdf).
 
 {% include base_path %}
 
@@ -26,9 +26,10 @@ PDF copy of my CV available [here](/files/Gutteridge_CV_July_2025.pdf).
 
 ## Industry
 ---
-Deep Learning Intern, **QuantCo** (Jun-Aug 2024)
+Deep Learning Intern, **QuantCo** (Jun-Aug 2024; returned Jul-Oct 2025)
 
-* Worked on internal research project investigating LLM reasoning over long-context documents; prompt engineering and fine-tuning with noisy, multimodal long document (~30+ pages) data
+* 2024: Worked on internal research project investigating LLM reasoning over long-context documents; prompt engineering and fine-tuning with noisy, multimodal long document (~30+ pages) data
+* 2025: Invited for return internship to join DocAI team: document processing for health insurance within AXA Germany, using multi-modal LLMs and fine-tuned traditional language models. Also implemented Langfuse for MLOps experimentation pipeline, both in AXA Germany DocAI project and at QuantCo internally; set up self-hosted instance with Kubernetes and AWS EKS.
 
 
 Visiting Data Scientist, **BCG X** (Mar-May 2024)
@@ -80,13 +81,19 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 
 ## Skills
 ---
-* **Python**: experienced across a range of personal and academic projects, with data science (NumPy, SciPy, Pandas, etc.) and deep learning libraries (PyTorch, Jax/Flax).
+* **Python**: experienced across a range of personal and academic projects, with data science (NumPy, SciPy, Pandas, etc.) and deep learning libraries.
 * **MATLAB**: experience working with during QinetiQ internships and for and undergraduate projects.
 * Grade 8 Jazz Clarinet with Distinction, Trinity College London (2016).
 
 
 ## Publications
 ---
+
+**Can Graph Foundation Models Generalize Over Architecture?** (2026)
+
+Presented at the ICLR-25 accepted to the ICLR-26 Workshop on Geometry-grounded Representation Learning and Generative Modeling (GRaM), Rio de Janeiro, Brazil, 2026.
+
+**Benjamin Gutteridge**, Michael Bronstein, Xiaowen Dong
 
 [**On Measuring Long-Range Interactions in Graph Neural Networks** (2025)](https://arxiv.org/abs/2506.05971)
 
