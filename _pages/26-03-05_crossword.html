@@ -76,6 +76,21 @@ permalink: /crossword/
   }
   .check-msg.correct { color: #7dbf7d; }
 
+  .solutions-link {
+    display: inline-block;
+    margin-top: 18px;
+    color: var(--mid);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-bottom: 1px solid var(--dark-gold);
+    padding-bottom: 2px;
+    transition: color 0.2s;
+  }
+  .solutions-link:hover { color: var(--gold); }
+
   /* Mobile: stack grid on top, clues below. Desktop: side by side. */
   .main {
     display: flex;
@@ -242,6 +257,7 @@ permalink: /crossword/
   <div class="rule"><span class="sub">5/3/2026</span></div>
   <button class="check-btn" onclick="checkAnswers()">✓ Check Answers</button>
   <div class="check-msg" id="checkMsg"></div>
+  <a href="/crossword/solutions/" class="solutions-link">Solutions & Explanations ⚠ Spoilers</a>
 </header>
 
 <div class="main">
@@ -366,6 +382,7 @@ const clueData = {
     27: { clue: "Ecstatic sip of tea after work for Eminem", len: "4" },
     29: { clue: "You dropped out of chase for oft-stolen bag", len: "5" },
     31: { clue: "Hot ex", len: "3" },
+    32: { clue: "Stay in Málaga? Really?", len: "3" },
     33: { clue: "Short, and shrinking!", len: "3" },
     34: { clue: `New in cologne: <span class="cologne-name">Union</span>`, len: "3", rawHTML: true },
     35: { clue: "Insides all drained out from haemophilia. LOL", len: "2" },

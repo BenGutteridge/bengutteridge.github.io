@@ -1,0 +1,427 @@
+---
+layout: null
+permalink: /crossword/solutions/
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Birthday Crossword — Solutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,600;1,400&family=Dancing+Script:wght@700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #12100e;
+    --cream: #f4efe4;
+    --gold: #c9a84c;
+    --dark-gold: #7a5c1e;
+    --mid: #8b7355;
+    --dim: #c8bfad;
+    --cell: clamp(18px, calc((100vw - 52px) / 16), 40px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--black);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 10px 72px;
+    font-family: 'Spectral', serif;
+  }
+
+  header { text-align: center; margin-bottom: 24px; padding: 0 10px; }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: clamp(1.1rem, 4vw, 2.0rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .rule {
+    display: flex; align-items: center; gap: 12px; justify-content: center; margin: 8px 0;
+  }
+  .rule::before, .rule::after { content:''; height:1px; width:50px; background:var(--dark-gold); }
+  .sub { color:var(--mid); font-family:'DM Mono',monospace; font-size:0.66rem; letter-spacing:0.3em; text-transform:uppercase; }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--mid);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-bottom: 1px solid var(--dark-gold);
+    padding-bottom: 2px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--gold); }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    max-width: 1300px;
+    width: 100%;
+  }
+  @media (min-width: 900px) {
+    .main { flex-direction: row; align-items: flex-start; justify-content: center; }
+  }
+
+  /* GRID */
+  .grid-wrapper {
+    background: var(--cream);
+    padding: clamp(6px, 1.5vw, 14px);
+    border: 2px solid var(--gold);
+    box-shadow: 4px 4px 0 var(--dark-gold), 8px 8px 30px rgba(0,0,0,0.6);
+    flex-shrink: 0;
+    max-width: 100%;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(16, var(--cell));
+    grid-template-rows: repeat(17, var(--cell));
+    border-left: 2px solid #2a2010;
+    border-top: 2px solid #2a2010;
+  }
+
+  .cell {
+    width: var(--cell); height: var(--cell);
+    border-right: 2px solid #2a2010;
+    border-bottom: 2px solid #2a2010;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    background: #fff;
+  }
+  .cell.black { background: #1a1008; }
+  .cell.solved { background: #fdf6e3; }
+
+  .cell-letter {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.5rem, calc(var(--cell) * 0.52), 1.05rem);
+    font-weight: 700;
+    color: #3a2a08;
+    line-height: 1;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  .cell-number {
+    position: absolute; top: 1px; left: 2px;
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(0.22rem, calc(var(--cell) * 0.22), 0.42rem);
+    color: #555; line-height: 1;
+    pointer-events: none;
+  }
+
+  /* SOLUTIONS PANEL */
+  .solutions-panel {
+    width: 100%;
+    max-width: 700px;
+  }
+  @media (min-width: 900px) {
+    .solutions-panel {
+      flex: 1;
+      min-width: 280px;
+      max-width: 560px;
+      max-height: 90vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--dark-gold) transparent;
+    }
+  }
+
+  .solutions-section h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 1.4rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--dark-gold);
+    padding-bottom: 7px;
+    margin-bottom: 12px;
+    padding-top: 4px;
+    position: sticky; top: 0;
+    background: var(--black);
+    z-index: 1;
+  }
+
+  .solution-list { list-style: none; margin-bottom: 28px; }
+
+  .solution-item {
+    padding: 10px 10px 12px;
+    margin-bottom: 8px;
+    border-left: 2px solid var(--dark-gold);
+    background: rgba(201,168,76,0.04);
+  }
+
+  .solution-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .solution-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .solution-answer {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .solution-clue {
+    font-family: 'Spectral', serif;
+    font-size: 0.98rem;
+    color: var(--dim);
+    line-height: 1.5;
+    margin-bottom: 5px;
+  }
+  .solution-clue em { font-style: italic; color: #7a6a50; font-size: 0.9rem; }
+
+  .solution-explanation {
+    font-family: 'Spectral', serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--mid);
+    line-height: 1.55;
+  }
+
+  .cologne-name {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.05rem;
+    color: #c9a84c;
+    letter-spacing: 0.05em;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Happy 61st Birthday Dad</h1>
+  <div class="rule"><span class="sub">Solutions & Explanations</span></div>
+  <a href="/crossword/" class="back-link">← Back to Crossword</a>
+</header>
+
+<div class="main">
+  <div class="grid-wrapper">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="solutions-panel">
+    <div class="solutions-section">
+      <h2>Across</h2>
+      <ul class="solution-list" id="across-list"></ul>
+    </div>
+    <div class="solutions-section">
+      <h2>Down</h2>
+      <ul class="solution-list" id="down-list"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+const SOLUTION = [
+  "R","E","F","O","R","M"," "," ","S","O","F","T","S","P","O","T",
+  "E"," ","O"," ","A"," ","C"," "," "," ","R"," "," ","R"," ","W",
+  "V","E","R","T","I","G","O"," ","S","T","A","C","H","E"," ","I",
+  "E"," ","M"," ","L"," ","N"," ","A"," ","G"," "," ","J","U","T",
+  "L","O","U","T"," ","A","C","C","L","A","I","M"," ","U"," ","T",
+  "A"," ","L"," ","N"," ","O"," ","E"," ","L"," "," ","D","I","E",
+  "T"," ","A","N","A","G","R","A","M","M","E","D"," ","I"," ","R",
+  "I"," "," ","O","Z"," ","D"," "," "," "," ","I"," ","C"," "," ",
+  "O"," ","P","R","I","D","E"," "," ","D","I","C","K","E","N","S",
+  "N"," ","T"," "," "," "," "," "," "," "," ","K"," "," "," ","Q",
+  " ","M","A","T","H","S"," ","N","O","B","L","E","S"," "," ","U",
+  "R"," ","R"," ","E"," "," "," "," ","O"," ","N"," ","I","C","E",
+  "A"," ","M"," ","H"," "," ","P","O","L","I","S","H"," "," ","A",
+  "P","R","I","M","E"," "," ","U"," ","O"," "," "," "," "," ","M",
+  "T"," ","G"," "," ","T","A","R"," ","T"," ","S","I","N","A","I",
+  " ","H","A","M","M","E","R","S","M","I","T","H"," ","E"," ","S",
+  "T","A","N"," "," ","N","E","E"," ","E"," ","Y","O","U","T","H"
+];
+
+const COLS = 16, ROWS = 17;
+
+function isWhite(r, c) {
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return false;
+  return SOLUTION[r * COLS + c] !== ' ';
+}
+
+// Number cells
+const cellNums = {};
+let nn = 1;
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    if (!isWhite(r, c)) continue;
+    const sA = !isWhite(r, c-1) && isWhite(r, c+1);
+    const sD = !isWhite(r-1, c) && isWhite(r+1, c);
+    if (sA || sD) { cellNums[`${r},${c}`] = nn; nn++; }
+  }
+}
+
+// Build grid
+const gridEl = document.getElementById('grid');
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const idx = r * COLS + c;
+    const cell = document.createElement('div');
+    const white = SOLUTION[idx] !== ' ';
+    cell.className = 'cell' + (white ? ' solved' : ' black');
+
+    if (white) {
+      const num = cellNums[`${r},${c}`];
+      if (num) {
+        const s = document.createElement('span');
+        s.className = 'cell-number';
+        s.textContent = num;
+        cell.appendChild(s);
+      }
+      const l = document.createElement('span');
+      l.className = 'cell-letter';
+      l.textContent = SOLUTION[idx];
+      cell.appendChild(l);
+    }
+
+    gridEl.appendChild(cell);
+  }
+}
+
+// Solution data
+const solutionData = {
+  across: {
+    1:  { answer: 'REFORM',      len: '6',    clue: "Crooked former banker's political comeback",
+          explanation: `REFORM is an anagram of 'former'; 'crooked' is an anagram indicator. The definition is "Banker's political comeback" (i.e. the Reform party; Farage was a banker), but also the entire sentence works as a definition. 'Comeback' also works as a definition; if something 're-forms', it could be said to have 'come back'` },
+    4:  { answer: 'SOFT SPOT',   len: '4,4',  clue: "More ass (pronounced) under belly",
+          explanation: `'Pronounced' is a homophone indicator; 'more ass' becomes 'morass', a word for a bog, or a 'soft spot' of ground. 'Underbelly' means 'weakness' or 'Achilles heel', as does the answer, SOFT SPOT.` },
+    9:  { answer: 'VERTIGO',     len: '7',    clue: "Nice green, I go giddy over it!",
+          explanation: `In Nice (in France), 'green' would be 'vert'. 'I go' just gives us letters, so we have VERTIGO; something you would go giddy over.` },
+    10: { answer: 'STACHE',      len: '6',    clue: "Hiding place reportedly right under my nose",
+          explanation: `'Reportedly' is a homophone indicator; a hiding place could be a 'stash' which sounds like STACHE (moustache), a thing that is right under your nose.` },
+    11: { answer: 'JUT',         len: '3',    clue: "Stick out! Start Sir, start or leave the joust!",
+          explanation: `If something JUTs it 'sticks out'; 'start Sir' and 'start or' mean the starting letters, S and O, which 'leave the joust', leaving JUT. I admit the 'the' is perfunctory here.` },
+    12: { answer: 'LOUT',        len: '4',    clue: "No sympathy for rowdy outlaw and ruffian",
+          explanation: `'Rowdy' is an anagram indicator. 'Aw' is a sound of sympathy. 'No sympathy' for LOUTAW leaves LOUT, a synonym for ruffian.` },
+    13: { answer: 'ACCLAIM',     len: '7',    clue: "Good job is clam chowder with CIA balls-up",
+          explanation: `Saying 'good job' is giving ACCLAIM. 'Chowder' and 'balls-up' are both anagram indicators; put together, CLAMCIA → ACCLAIM` },
+    15: { answer: 'DIE',         len: '3',    clue: "Starve from Atkins, skipping tea",
+          explanation: `'Atkins' is a diet; if you 'skip the tea', you get DIE, which is what happens when you 'starve'` },
+    16: { answer: 'ANAGRAMMED',  len: '10',   clue: "Puzzled Gran, Adam and me",
+          explanation: `If you 'puzzled' the letters from GRANADAM and ME, e.g. anagrammed them, you get the answer: ANAGRAMMED.` },
+    19: { answer: 'OZ',          len: '2',    clue: "Fantastic place on the other side of the world",
+          explanation: `OZ is a fantasy land as well as a slang word for Australia, which is 'on the other side of the world'.` },
+    20: { answer: 'PRIDE',       len: '5',    clue: "Partial differential equation with real and imaginary variables inside? It's a deadly sin",
+          explanation: `'Partial differential equation' is commonly abbreviated to PDE. Variables in maths are typically single letters representing quantities; 'real and imaginary variables' could easily be the letters R and I. Put these inside PDE and we get PRIDE, which is one of the seven deadly sins.` },
+    21: { answer: 'DICKENS',     len: '7',    clue: "Our mutual friend collapsed, sickened, after taking ecstasy",
+          explanation: `'Taking ecstasy' is a deletion indicator; we delete the letter E (slang for the drug ecstasy) from 'sickened'. It is then 'collapsed', an anagram indicator: SICKEND → DICKENS, who wrote the novel 'Our Mutual Friend'. E.g. you might say "I'm reading Dickens" if you were reading that book.` },
+    23: { answer: 'MATHS',       len: '5',    clue: "First halves made, then second — how many were made in total?",
+          explanation: `The 'first halves' of 'made' and 'then' give MATH; 'second' is abbreviated to S, giving MATHS. The second part of the clue (and the clue overall), 'How many were made in total?' sounds like a maths question.` },
+    25: { answer: 'NOBLES',      len: '6',    clue: "Near-broke royals",
+          explanation: `If 'near' is 'broke[n]', we get Ne and Ar, i.e. neon and argon, which are NOBLES, i.e. noble gases. Royals are also nobles, so this is a double definition clue.` },
+    28: { answer: 'ICE',         len: '3',    clue: "Trump's private army; chilling stuff",
+          explanation: `Immigration and Customs Enforcement (ICE) in the US is turning into Trump's personal paramilitary force. ICE is 'chilling stuff', e.g. it chills your drink. Another double definition.` },
+    29: { answer: 'POLISH',      len: '6',    clue: "Paint old ship at sea after scrubbing end to end",
+          explanation: `'At sea' is an anagram indicator, if you're 'at sea' you're lost or confused. OLDSHIP → POLISHD. If we 'scrub' 'end to end', we remove the last letter of end, leaving simply 'POLISH', which is a synonym for 'paint' (e.g. nail polish).` },
+    30: { answer: 'PRIME',       len: '5',    clue: "Unsliceable melons start turning ripe outside",
+          explanation: `'Melons start' means we take the letter M. 'Outside', i.e. around that, we put 'turning ripe'; an anagram of RIPE, giving PRIME. Prime numbers are 'unsliceable'; they have no factors other than one and themselves.` },
+    31: { answer: 'TAR',         len: '3',    clue: "Tickle rat, torture with feather",
+          explanation: `'Tickle' is an anagram indicator, so if we 'tickle rat', we get TAR. Tar and feathers are components of a medieval torture technique, so 'torture, with feather' could mean TAR.` },
+    33: { answer: 'SINAI',       len: '5',    clue: "Get your stone tablets here! Like stealing, all inventory 90% off!",
+          explanation: `'Get your stone tablets here' is our definition; it is SINAI, the mountain upon which Moses got the stone tablets with the ten commandments inscribed on them. 'Like stealing' is SIN, i.e. something 'like stealing' is a sin; stealing is one example of a sin. '90% off' is a deletion indicator; we remove all but the first letters of 'all inventory', leaving AI. Put it together for SINAI.` },
+    35: { answer: 'HAMMERSMITH', len: '11',   clue: "Smithy curt after nail-biter by Fulham",
+          explanation: `'Curt' is a deletion indicator, to be curt with someone is to be short with them, so we cut 'Smithy' short for SMITH. This then goes 'after' a 'nail-biter'. You could argue that a HAMMER is a 'nail-biter'; you use it to hit nails. This gives HAMMERSMITH, which is 'by' (next to) Fulham.` },
+    36: { answer: 'TAN',         len: '3',    clue: "You are bottom-out, of course, over a sin. Turn around for spank",
+          explanation: `'You' substitutes for the letter U. 'Are bottom' denotes the 'bottom' of 'are', the letters RE. These letters, URE, are 'out of [the word] course', leaving COS. COS is 'over a sin'; COS/SIN. If we 'turn [this] around', we get SIN/COS, which, in trigonometry, is TAN, and if you tan someone, you might 'spank' them.` },
+    37: { answer: 'NEE',         len: '3',    clue: "Previously five away from breaking even",
+          explanation: `'Five' substitutes for its Roman numeral V. 'Breaking' is an anagram indicator, so we anagram 'even' and remove the V, and get NEE. NEE is a synonym for 'previously', e.g. "Nicola Gutteridge, nee Griffith" is equivalent to "Nicola Gutteridge, previously Griffith."` },
+    38: { answer: 'YOUTH',       len: '5',    clue: "Lad can go in my outhouse",
+          explanation: `This is a hidden word clue. YOUTH is hidden in ('can go in') 'my outhouse'; a YOUTH is a 'lad'.` },
+  },
+  down: {
+    1:  { answer: 'REVELATION',  len: '10',   clue: "Apocalyptic quaking in elevator",
+          explanation: `'Quaking' is an anagram indicator: INELEVATOR → REVELATION; The Book of Revelation in the bible is also called the Book of the Apocalypse.` },
+    2:  { answer: 'FORMULA',     len: '7',    clue: "Fuck 'moral'; fuck you, system",
+          explanation: `Here 'fuck' is an anagram indicator (like 'fuck up', mess up). 'Fuck you' abbreviates to FU. MORALFU → FORMULA; if you have a 'system' for something, you could be said to have a formula for it.` },
+    3:  { answer: 'RAIL',        len: '4',    clue: "Protest liar angrily",
+          explanation: `'Angrily' is an anagram indicator; LIAR → RAIL; if you rail against something you 'protest' it.` },
+    5:  { answer: 'FRAGILE',     len: '7',    clue: "Patching holes in roof; turnaround quick, might not hold together",
+          explanation: `If we 'patch' 'holes' in 'roof', we can remove the 'o's (holes) from 'roof', leaving the letters RF. 'Turnaround' these for 'FR' and append a substituted word for 'quick': AGILE. Something FRAGILE might not hold together.` },
+    6:  { answer: 'PREJUDICE',   len: '9',    clue: "Jaundiced without, and, at the outset, rude, per bigotry",
+          explanation: `'Jaundiced' 'without' the letters AND gives 'JUDICE'. 'Rude' is an anagram indicator; PER → PRE. Put this 'at the outset' for PREJUDICE, a synonym for 'bigotry'.` },
+    7:  { answer: 'TWITTER',     len: '7',    clue: "Elon's W",
+          explanation: `TWITTER is "Elon's", as he bought it, so that's our (tenuous) definition. Twitter is now called X; it was Twitter before X, and 'W' is the letter before X. Also, in Gen Z slang, a 'W' is a 'win', so overall this clue means "Elon's win" — you could argue that buying Twitter was a win for him (not so much for anyone else).` },
+    8:  { answer: 'CONCORDE',    len: '8',    clue: "Subtle message received, unechoed encore — plane to see before being heard",
+          explanation: `A CODE is a subtle message, and this 'received' some other letters, i.e. we put some other letters into the middle of CODE. These letters are given by 'enechoed encore'. Echo is the phonetic alphabet word for E, so if we 'unecho' 'encore' we get NCOR. Let CODE 'receive' this, and we get CONCORDE, which is a 'plane to see before being heard', as it is faster than the speed of sound. This one is a bit of a stretch I admit, especially the incorrect spelling of 'plain' in 'plain to see'.` },
+    10: { answer: 'SALEM',       len: '5',    clue: "Meals on wheels, say — which city?",
+          explanation: `'On wheels' is an anagram indicator; MEALS → SALEM. 'Say' is a homophone indicator; 'which' sounds like 'witch', and Salem, Massachusetts is the 'witch city', the site of the Salem witch trials.` },
+    14: { answer: 'NAZI',        len: '4',    clue: "Fascist leaders not invested all-round; burn dictionary but leave start and end intact",
+          explanation: `'Leaders' is a selection indicator, we take the leaders, the first letters, of 'not invested': NI. This goes 'all-round' some other letters. We get these from 'burn dictionary but leave start and end intact'. If we did this we would be left with only A and Z; NI goes around AZ for NAZI, a fascist.` },
+    17: { answer: 'NOR',         len: '3',    clue: "Neither wizard's friend bewitched",
+          explanation: `Ron is Harry Potter's friend. If we 'bewitch' RON we anagram it to NOR, which is a synonym for 'neither'. (E.g. "she doesn't like them, [nor/neither] do I")` },
+    18: { answer: 'DICKENS',     len: '7',    clue: "Devastating dropkick ends hard times",
+          explanation: `'Dropkick' includes a deletion indicator; reading left to right it is 'drop k', 'ick'; so we drop 'k' and have just ICK remaining. 'Devastating' (anagramming) ICK ENDS → DICKENS, and 'Hard Times' is another Dickens novel.` },
+    20: { answer: 'PTARMIGAN',   len: '9',    clue: "India joins planetwide arms embargos going ahead, NATO leaders grouse",
+          explanation: `'Planetwide' gives us PT; if we take a wide view of 'planet', we have the first and last letters. 'Arms' gives us the letters ARMS, but we 'embargo S', i.e. drop S, leaving (PT)ARM. "Leaders" means we take the first letters of "going ahead, NATO"; GAN, so we have PTARMGAN. "India joins", so we insert I, for which India is the phonetic alphabet word, giving us the answer: PTARMIGAN, a bird which is a kind of 'grouse'.` },
+    22: { answer: 'SQUEAMISH',   len: '9',    clue: "Prudish agrarian Christians pre-eminent knee-deep squelchers",
+          explanation: `The AMISH are 'agrarian Christians'; 'knee-deep' is a selection indicator, meaning to take the first few letters of 'squelchers'. Make this 'pre-eminent', i.e. move it before AMISH, to get SQUEAMISH, a synonym for 'prudish'.` },
+    24: { answer: 'HEHE',        len: '4',    clue: "MJ says his pronouns",
+          explanation: `This one is just a joke I saw online and stole. 'MJ says' is the definition, because he says 'hee hee', and 'he/he' could also (sort of) be 'his' pronouns, i.e. a man's pronouns; the answer is HEHE.` },
+    26: { answer: 'BOLO TIE',    len: '4,3',  clue: "Starts being on lookout; this is not a Western; they wring cowboys' necks",
+          explanation: `'Starts' is a selection indicator; look at first letters of words. 'Being on lookout, this is' gives BOLOTI (we treat lookout as two words here; I think this is still reasonable as apparently BOLO for 'be on lookout' is a recognised acronym). Then we add E, which is 'not a Western', i.e. the abbreviation of East, and get BOLO TIE; a type of tie that cowboys wear, that could be said to wring their necks.` },
+    27: { answer: 'RAPT',        len: '4',    clue: "Ecstatic sip of tea after work for Eminem",
+          explanation: `Eminem is a rapper so 'work for Eminem' is RAP. If we put a 'sip of tea after' we add the letter T to the end, giving RAPT, a synonym for ecstatic (in the sense of religious/mystic awe).` },
+    29: { answer: 'PURSE',       len: '5',    clue: "You dropped out of chase for oft-stolen bag",
+          explanation: `Another word for 'chase' is 'pursue'; 'you dropped out' means to drop a letter U, giving PURSE, which is the classic thing stolen in movies and TV.` },
+    31: { answer: 'TEN',         len: '3',    clue: "Hot ex",
+          explanation: `If someone is 'hot' they might be called a TEN (out of ten); 'ex' substitutes for X, the Roman numeral for TEN; so this one is a double definition.` },
+    32: { answer: 'ARE',         len: '3',    clue: "Stay in Málaga? Really?",
+          explanation: `The word ARE is hidden inside 'Málaga? really?', and ARE can be a synonym for 'stay'; e.g. "you are there"/"you stay there"` },
+    33: { answer: 'SHY',         len: '3',    clue: "Short, and shrinking!",
+          explanation: `Another double definition; if you are (e.g. 20p) SHY you are 'short', and a SHY person could also be described as 'shrinking'. I like the surface here of 'small and getting smaller'.` },
+    34: { answer: 'NEU',         len: '3',    clue: `New in cologne: <span class="cologne-name">Union</span>`,
+          explanation: `In Cologne, i.e. in Germany, the word for 'new' is NEU, which is the National Education Union, the largest teacher's union in the UK. Using 'union' as the name of a new cologne seemed a bit of a stretch, which is why I put it in a fancy font.` },
+    35: { answer: 'HA',          len: '2',    clue: "Insides all drained out from haemophilia. LOL",
+          explanation: `Deletion indicator; if you 'drained out' 'all' the 'insides' from 'haemophilia' you are left with just the first and last letters, HA, a word you might say in response to something funny, like 'LOL'.` },
+  }
+};
+
+function buildList(listEl, clues, dir) {
+  Object.keys(clues).map(Number).sort((a, b) => a - b).forEach(num => {
+    const { answer, len, clue, explanation } = clues[num];
+    const li = document.createElement('li');
+    li.className = 'solution-item';
+    li.innerHTML = `
+      <div class="solution-header">
+        <span class="solution-num">${num}</span>
+        <span class="solution-answer">${answer} <span style="color:var(--mid);font-size:0.8em">(${len})</span></span>
+      </div>
+      <div class="solution-clue">${clue}</div>
+      <div class="solution-explanation">${explanation}</div>
+    `;
+    listEl.appendChild(li);
+  });
+}
+
+buildList(document.getElementById('across-list'), solutionData.across, 'across');
+buildList(document.getElementById('down-list'), solutionData.down, 'down');
+</script>
+</body>
+</html>
