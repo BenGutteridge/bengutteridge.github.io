@@ -91,7 +91,7 @@ Intern, **QinetiQ** (Jul-Sep 2018, Jun-Sep 2019)
 
 **Can Graph Foundation Models Generalize Over Architecture?** (2026)
 
-Presented at the ICLR-25 accepted to the ICLR-26 Workshop on Geometry-grounded Representation Learning and Generative Modeling (GRaM), Rio de Janeiro, Brazil, 2026.
+To be presented at the ICLR-26 Workshop on Geometry-grounded Representation Learning and Generative Modeling (GRaM), Rio de Janeiro, Brazil, 2026.
 
 **Benjamin Gutteridge**, Michael Bronstein, Xiaowen Dong
 
