@@ -1,0 +1,360 @@
+---
+layout: null
+permalink: /grotsword/solutions/
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grotsword — Solutions</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #12100e;
+    --cream: #f4efe4;
+    --gold: #c9a84c;
+    --dark-gold: #7a5c1e;
+    --mid: #8b7355;
+    --dim: #c8bfad;
+    --cell: clamp(44px, calc((100vw - 80px) / 5), 90px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--black);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 10px 72px;
+    font-family: 'Spectral', serif;
+  }
+
+  header { text-align: center; margin-bottom: 24px; padding: 0 10px; }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: clamp(1.4rem, 6vw, 2.6rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .rule {
+    display: flex; align-items: center; gap: 12px; justify-content: center; margin: 8px 0;
+  }
+  .rule::before, .rule::after { content:''; height:1px; width:50px; background:var(--dark-gold); }
+  .sub { color:var(--mid); font-family:'DM Mono',monospace; font-size:0.66rem; letter-spacing:0.3em; text-transform:uppercase; }
+
+  .back-link {
+    display: inline-block;
+    margin-top: 14px;
+    color: var(--mid);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-bottom: 1px solid var(--dark-gold);
+    padding-bottom: 2px;
+    transition: color 0.2s;
+  }
+  .back-link:hover { color: var(--gold); }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    max-width: 1100px;
+    width: 100%;
+  }
+  @media (min-width: 760px) {
+    .main { flex-direction: row; align-items: flex-start; justify-content: center; }
+  }
+
+  /* GRID */
+  .grid-wrapper {
+    background: var(--cream);
+    padding: clamp(6px, 1.5vw, 14px);
+    border: 2px solid var(--gold);
+    box-shadow: 4px 4px 0 var(--dark-gold), 8px 8px 30px rgba(0,0,0,0.6);
+    flex-shrink: 0;
+    max-width: 100%;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, var(--cell));
+    grid-template-rows: repeat(5, var(--cell));
+    border-left: 2px solid #2a2010;
+    border-top: 2px solid #2a2010;
+  }
+
+  .cell {
+    width: var(--cell); height: var(--cell);
+    border-right: 2px solid #2a2010;
+    border-bottom: 2px solid #2a2010;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    background: #fff;
+  }
+  .cell.black { background: #1a1008; }
+  .cell.solved { background: #fdf6e3; }
+
+  .cell-letter {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.9rem, calc(var(--cell) * 0.52), 2.2rem);
+    font-weight: 700;
+    color: #3a2a08;
+    line-height: 1;
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+
+  .cell-number {
+    position: absolute; top: 2px; left: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(0.45rem, calc(var(--cell) * 0.18), 0.72rem);
+    color: #555; line-height: 1;
+    pointer-events: none;
+  }
+
+  /* SOLUTIONS PANEL */
+  .solutions-panel {
+    width: 100%;
+    max-width: 700px;
+  }
+  @media (min-width: 760px) {
+    .solutions-panel {
+      flex: 1;
+      min-width: 260px;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--dark-gold) transparent;
+    }
+  }
+
+  .solutions-section h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 1.3rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--dark-gold);
+    padding-bottom: 7px;
+    margin-bottom: 12px;
+    padding-top: 4px;
+    position: sticky; top: 0;
+    background: var(--black);
+    z-index: 1;
+  }
+
+  .solution-list { list-style: none; margin-bottom: 28px; }
+
+  .solution-item {
+    padding: 10px 10px 12px;
+    margin-bottom: 8px;
+    border-left: 2px solid var(--dark-gold);
+    background: rgba(201,168,76,0.04);
+  }
+
+  .solution-header {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+
+  .solution-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .solution-answer {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.9rem;
+    color: var(--gold);
+    letter-spacing: 0.12em;
+    font-weight: 500;
+    flex-shrink: 0;
+  }
+
+  .solution-clue {
+    font-family: 'Spectral', serif;
+    font-size: 0.98rem;
+    color: var(--dim);
+    line-height: 1.5;
+    margin-bottom: 5px;
+  }
+  .solution-clue em { font-style: italic; color: #7a6a50; font-size: 0.9rem; }
+
+  .solution-explanation {
+    font-family: 'Spectral', serif;
+    font-style: italic;
+    font-size: 0.88rem;
+    color: var(--mid);
+    line-height: 1.55;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Grotsword</h1>
+  <div class="rule"><span class="sub">Solutions &amp; Explanations</span></div>
+  <a href="/grotsword/" class="back-link">← Back to Grotsword</a>
+</header>
+
+<div class="main">
+  <div class="grid-wrapper">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="solutions-panel">
+    <div class="solutions-section">
+      <h2>Across</h2>
+      <ul class="solution-list" id="across-list"></ul>
+    </div>
+    <div class="solutions-section">
+      <h2>Down</h2>
+      <ul class="solution-list" id="down-list"></ul>
+    </div>
+  </div>
+</div>
+
+<script>
+// Grid layout (5×5):
+// Row 0: T  ■  G  R  O
+// Row 1: ■  G  R  O  T
+// Row 2: G  R  O  T  ■
+// Row 3: R  O  T  ■  G
+// Row 4: O  T  ■  G  R
+const SOLUTION = [
+  "T"," ","G","R","O",
+  " ","G","R","O","T",
+  "G","R","O","T"," ",
+  "R","O","T"," ","G",
+  "O","T"," ","G","R"
+];
+
+const COLS = 5, ROWS = 5;
+
+function isWhite(r, c) {
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return false;
+  return SOLUTION[r * COLS + c] !== ' ';
+}
+
+// Number cells (same logic as the main puzzle)
+const cellNums = {};
+let nn = 1;
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    if (!isWhite(r, c)) continue;
+    const sA = !isWhite(r, c-1) && isWhite(r, c);
+    const sD = !isWhite(r-1, c) && isWhite(r, c);
+    const aLen = (() => { let cc = c; while (isWhite(r, cc)) cc++; return cc - c; })();
+    const dLen = (() => { let rr = r; while (isWhite(rr, c)) rr++; return rr - r; })();
+    if ((sA && aLen >= 1) || (sD && dLen >= 1)) {
+      cellNums[`${r},${c}`] = nn;
+      nn++;
+    }
+  }
+}
+
+// Build solved grid
+const gridEl = document.getElementById('grid');
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const idx = r * COLS + c;
+    const cell = document.createElement('div');
+    const white = SOLUTION[idx] !== ' ';
+    cell.className = 'cell' + (white ? ' solved' : ' black');
+
+    if (white) {
+      const num = cellNums[`${r},${c}`];
+      if (num) {
+        const s = document.createElement('span');
+        s.className = 'cell-number';
+        s.textContent = num;
+        cell.appendChild(s);
+      }
+      const l = document.createElement('span');
+      l.className = 'cell-letter';
+      l.textContent = SOLUTION[idx];
+      cell.appendChild(l);
+    }
+
+    gridEl.appendChild(cell);
+  }
+}
+
+const solutionData = {
+  across: {
+    1:  { answer: 'T',    len: '1', clue: "Teatime",
+          explanation: `Sort of a double definition clue: 'tea' is a homophone of T, and 'time' can be abbreviated to T.` },
+    2:  { answer: 'GRO',  len: '3', clue: "Where to request death certificate for Musk's half-baked chatbot?",
+          explanation: `The General Registry Office (GRO) is 'where [you can] request [a] death certificate', so that is our definition. Musk's half-baked chatbot is GRO — i.e. 'Grok', 'half-baked', with a letter missing.` },
+    5:  { answer: 'GROT', len: '4', clue: "Front covers great read on toilet",
+          explanation: `'Covers' indicates first letters of 'great read on toilet' → GROT, which is on the 'front' of the zine you are reading!` },
+    6:  { answer: 'GROT', len: '4', clue: "Grime got right inside",
+          explanation: `'Right' abbreviates to R. 'Got' with R inserted inside is GROT, a synonym for 'grime'.` },
+    7:  { answer: 'ROT',  len: '3', clue: "Expunge deranged Byronic blather",
+          explanation: `Two substitutions: 'deranged' for MANIC, and 'Byronic' for ROMANTIC. If we expunge MANIC from ROMANTIC we are left with ROT, a synonym for 'blather'.` },
+    8:  { answer: 'G',    len: '1', clue: "Hole in one!",
+          explanation: `A bit stretchy: 'hole in one' is meant to point towards 'golf', whose phonetic alphabet letter is G. The phrase 'hole in one' also nicely implies a solution obtained in a single letter.` },
+    9:  { answer: 'OT',   len: '2', clue: "Cutting overtime",
+          explanation: `Abbreviating ('cutting') overtime gives OT.` },
+    10: { answer: 'GR',   len: '2', clue: "Heard grizzly end",
+          explanation: `'Grizzly' is doing double duty here. One 'end' of 'grizzly' is GR, and if you 'heard' a grizzly it would probably be growling — grrr... and you would probably suffer a grizzly end.` },
+  },
+  down: {
+    1:  { answer: 'T',    len: '1', clue: "Starting to take three to tango!",
+          explanation: `'Starting' indicates first letter, and every word in this clue begins with T. 'Tango' is our definition — the phonetic alphabet word for T.` },
+    2:  { answer: 'GROT', len: '4', clue: "An unpleasant thing, Greek foot. Field officer quit, let out a scream.",
+          explanation: `If 'field officer' (FO) 'quits' (is deleted from) GREEKFOOT, and we also 'let out' (delete) a 'scream' (EEK), we are left with just GROT — 'an unpleasant thing'.` },
+    3:  { answer: 'ROT',  len: '3', clue: "Third helpings of pork roast and crumble",
+          explanation: `If we take 'third helpings' — every third letter — of 'pork roast', we get R, O, T. ROT means to decay, to 'crumble'.` },
+    4:  { answer: 'OT',   len: '2', clue: "Chart-topping Genesis numbers, say",
+          explanation: `'Genesis' and 'Numbers', 'say', are books of the Old Testament. If we look at only the 'chart-topping' (first) letters of 'Old Testament' — OT — we get our answer, a valid abbreviation for it. The definition is 'Genesis numbers, say'.` },
+    5:  { answer: 'GROT', len: '4', clue: "Cave-wandering trog",
+          explanation: `'Trog' is short for troglodyte, a word for caveman. 'Wandering' is an anagram indicator; wandering TROG → GROT, which is a word for a cave or grotto.` },
+    6:  { answer: 'GRO',  len: '3', clue: "Just short of twelve dozen",
+          explanation: `The answer is literally 'just [the] short[ened version of] twelve dozen' — i.e. GRO, an abbreviation of 'gross'.` },
+    8:  { answer: 'GR',   len: '2', clue: "Grumbles, out of bog roll",
+          explanation: `A 'grumble' is something of a growl — a 'grrr'. The letters GR come 'out of' 'bog roll' as a hidden word. GR is also used as a written growl.` },
+    10: { answer: 'G',    len: '1', clue: "Gram of ganja",
+          explanation: `'A gram of' means 'a bit of'; a bit of the word 'ganja' would be the letter G. 'Gram' also abbreviates to G, which is our definition — it's sort of an &lit clue where the whole clue serves as definition too.` },
+  }
+};
+
+function buildList(listEl, clues, dir) {
+  Object.keys(clues).map(Number).sort((a, b) => a - b).forEach(num => {
+    const { answer, len, clue, explanation } = clues[num];
+    const li = document.createElement('li');
+    li.className = 'solution-item';
+    li.innerHTML = `
+      <div class="solution-header">
+        <span class="solution-num">${num}</span>
+        <span class="solution-answer">${answer} <span style="color:var(--mid);font-size:0.8em">(${len})</span></span>
+      </div>
+      <div class="solution-clue">${clue}</div>
+      <div class="solution-explanation">${explanation}</div>
+    `;
+    listEl.appendChild(li);
+  });
+}
+
+buildList(document.getElementById('across-list'), solutionData.across, 'across');
+buildList(document.getElementById('down-list'), solutionData.down, 'down');
+</script>
+</body>
+</html>

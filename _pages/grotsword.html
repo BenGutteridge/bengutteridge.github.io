@@ -75,6 +75,37 @@ permalink: /grotsword/
   }
   .check-msg.correct { color: #7dbf7d; }
 
+  .reset-btn {
+    margin-top: 8px;
+    background: none;
+    border: 1px solid transparent;
+    color: var(--mid);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+  }
+  .reset-btn:hover { color: var(--gold); border-color: var(--dark-gold); }
+
+  .solutions-link {
+    display: inline-block;
+    margin-top: 18px;
+    color: var(--mid);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    border-bottom: 1px solid var(--dark-gold);
+    padding-bottom: 2px;
+    transition: color 0.2s;
+  }
+  .solutions-link:hover { color: var(--gold); }
+
   /* Mobile: stack grid on top, clues below. Desktop: side by side. */
   .main {
     display: flex;
@@ -234,6 +265,25 @@ permalink: /grotsword/
   <div class="rule"><span class="sub">bengutteridge.github.io/grotsword</span></div>
   <button class="check-btn" onclick="checkAnswers()">✓ Check Answers</button>
   <div class="check-msg" id="checkMsg"></div>
+  <br>
+  <button class="reset-btn" id="resetBtn">↺ Reset</button>
+  <div class="check-msg" id="resetMsg" style="display:none;">
+    Reset all progress? This cannot be undone.
+    <span style="margin-left:10px;">
+      <span style="cursor:pointer;color:var(--gold);font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;" id="resetConfirm">Yes, reset</span>
+      &nbsp;/&nbsp;
+      <span style="cursor:pointer;color:var(--mid);font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;" id="resetCancel">Cancel</span>
+    </span>
+  </div>
+  <a href="/grotsword/solutions/" class="solutions-link" id="solutionsLink">Solutions &amp; Explanations ⚠ Spoilers</a>
+  <div class="check-msg" id="spoilerMsg" style="display:none;">
+    Spoiler alert! Are you sure you want to see the solved grotsword?
+    <span style="margin-left:10px;">
+      <a href="/grotsword/solutions/" style="color:var(--gold);font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;">Yes, show me</a>
+      &nbsp;/&nbsp;
+      <span style="cursor:pointer;color:var(--mid);font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;" id="spoilerCancel">Cancel</span>
+    </span>
+  </div>
 </header>
 
 <div class="main">
@@ -330,7 +380,7 @@ const clueData = {
     5:  { clue: "Front covers great read on toilet", len: "4" },
     6:  { clue: "Grime got right inside", len: "4" },
     7:  { clue: "Expunge deranged Byronic blather", len: "3" },
-    8:  { clue: "Hole in one", len: "1" },
+    8:  { clue: "Hole in one!", len: "1" },
     9:  { clue: "Cutting overtime", len: "2" },
     10: { clue: "Heard grizzly end", len: "2" },
   },
@@ -630,6 +680,36 @@ function checkAnswers() {
   }
   setTimeout(() => { msg.textContent = ''; msg.className = 'check-msg'; }, 4000);
 }
+
+// ── RESET ────────────────────────────────────────────────────────────────────
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('resetMsg').style.display = '';
+});
+document.getElementById('resetCancel').addEventListener('click', () => {
+  document.getElementById('resetMsg').style.display = 'none';
+});
+document.getElementById('resetConfirm').addEventListener('click', () => {
+  userGrid = Array(ROWS * COLS).fill('');
+  save();
+  for (let idx = 0; idx < SOLUTION.length; idx++) renderCell(idx);
+  document.getElementById('resetMsg').style.display = 'none';
+  const msg = document.getElementById('checkMsg');
+  msg.textContent = 'Progress reset.';
+  msg.className = 'check-msg';
+  setTimeout(() => { msg.textContent = ''; }, 2500);
+});
+
+// ── SPOILER CONFIRMATION ─────────────────────────────────────────────────────
+document.getElementById('solutionsLink').addEventListener('click', (e) => {
+  const msg = document.getElementById('spoilerMsg');
+  if (msg.style.display === 'none') {
+    e.preventDefault();
+    msg.style.display = '';
+  }
+});
+document.getElementById('spoilerCancel').addEventListener('click', () => {
+  document.getElementById('spoilerMsg').style.display = 'none';
+});
 
 // ── INIT: render saved letters ───────────────────────────────────────────────
 for (let idx = 0; idx < SOLUTION.length; idx++) {
