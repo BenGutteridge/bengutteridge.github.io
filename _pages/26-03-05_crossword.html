@@ -76,6 +76,22 @@ permalink: /crossword/
   }
   .check-msg.correct { color: #7dbf7d; }
 
+  .reset-btn {
+    margin-top: 8px;
+    background: none;
+    border: 1px solid transparent;
+    color: var(--mid);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 5px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+  }
+  .reset-btn:hover { color: var(--gold); border-color: var(--dark-gold); }
+
   .solutions-link {
     display: inline-block;
     margin-top: 18px;
@@ -257,6 +273,16 @@ permalink: /crossword/
   <div class="rule"><span class="sub">5/3/2026</span></div>
   <button class="check-btn" onclick="checkAnswers()">✓ Check Answers</button>
   <div class="check-msg" id="checkMsg"></div>
+  <br>
+  <button class="reset-btn" id="resetBtn">↺ Reset</button>
+  <div class="check-msg" id="resetMsg" style="display:none;">
+    Reset all progress? This cannot be undone.
+    <span style="margin-left:10px;">
+      <span style="cursor:pointer;color:var(--gold);font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;" id="resetConfirm">Yes, reset</span>
+      &nbsp;/&nbsp;
+      <span style="cursor:pointer;color:var(--mid);font-family:'DM Mono',monospace;font-size:0.68rem;letter-spacing:0.1em;" id="resetCancel">Cancel</span>
+    </span>
+  </div>
   <a href="/crossword/solutions/" class="solutions-link" id="solutionsLink">Solutions & Explanations ⚠ Spoilers</a>
   <div class="check-msg" id="spoilerMsg" style="display:none;">
     Spoiler alert! Are you sure you want to see the solved crossword?
@@ -703,6 +729,24 @@ function checkAnswers() {
   }
   setTimeout(() => { msg.textContent = ''; msg.className = 'check-msg'; }, 4000);
 }
+
+// ── RESET ────────────────────────────────────────────────────────────────────
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('resetMsg').style.display = '';
+});
+document.getElementById('resetCancel').addEventListener('click', () => {
+  document.getElementById('resetMsg').style.display = 'none';
+});
+document.getElementById('resetConfirm').addEventListener('click', () => {
+  userGrid = Array(ROWS * COLS).fill('');
+  save();
+  for (let idx = 0; idx < SOLUTION.length; idx++) renderCell(idx);
+  document.getElementById('resetMsg').style.display = 'none';
+  const msg = document.getElementById('checkMsg');
+  msg.textContent = 'Progress reset.';
+  msg.className = 'check-msg';
+  setTimeout(() => { msg.textContent = ''; }, 2500);
+});
 
 // ── SPOILER CONFIRMATION ─────────────────────────────────────────────────────
 document.getElementById('solutionsLink').addEventListener('click', (e) => {
