@@ -1,0 +1,644 @@
+---
+layout: null
+permalink: /grotsword/
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Grotsword</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;1,400&family=DM+Mono:wght@400;500&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #12100e;
+    --cream: #f4efe4;
+    --gold: #c9a84c;
+    --dark-gold: #7a5c1e;
+    --mid: #8b7355;
+    --dim: #c8bfad;
+    --cell: clamp(44px, calc((100vw - 80px) / 5), 90px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--black);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 10px 72px;
+    font-family: 'Spectral', serif;
+  }
+
+  header { text-align: center; margin-bottom: 24px; padding: 0 10px; }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: clamp(1.4rem, 6vw, 2.6rem);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    line-height: 1.2;
+  }
+
+  .rule {
+    display: flex; align-items: center; gap: 12px; justify-content: center; margin: 8px 0;
+  }
+  .rule::before, .rule::after { content:''; height:1px; width:50px; background:var(--dark-gold); }
+  .sub { color:var(--mid); font-family:'DM Mono',monospace; font-size:0.66rem; letter-spacing:0.3em; text-transform:uppercase; }
+
+  .check-btn {
+    margin-top: 14px;
+    background: none;
+    border: 1px solid var(--dark-gold);
+    color: var(--gold);
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 8px 22px;
+    cursor: pointer;
+    transition: all 0.2s;
+    touch-action: manipulation;
+  }
+  .check-btn:hover { background: rgba(201,168,76,0.15); border-color: var(--gold); }
+
+  .check-msg {
+    margin-top: 8px;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.1em;
+    color: var(--mid);
+    min-height: 1.2em;
+  }
+  .check-msg.correct { color: #7dbf7d; }
+
+  /* Mobile: stack grid on top, clues below. Desktop: side by side. */
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    max-width: 1100px;
+    width: 100%;
+  }
+  @media (min-width: 760px) {
+    .main { flex-direction: row; align-items: flex-start; justify-content: center; }
+  }
+
+  /* GRID */
+  .grid-wrapper {
+    background: var(--cream);
+    padding: clamp(6px, 1.5vw, 14px);
+    border: 2px solid var(--gold);
+    box-shadow: 4px 4px 0 var(--dark-gold), 8px 8px 30px rgba(0,0,0,0.6);
+    flex-shrink: 0;
+    max-width: 100%;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(5, var(--cell));
+    grid-template-rows: repeat(5, var(--cell));
+    border-left: 2px solid #2a2010;
+    border-top: 2px solid #2a2010;
+  }
+
+  .cell {
+    width: var(--cell); height: var(--cell);
+    border-right: 2px solid #2a2010;
+    border-bottom: 2px solid #2a2010;
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    background: #fff;
+    cursor: text;
+  }
+  .cell.black { background: #1a1008; cursor: default; }
+  .cell.highlight { background: #fef3cd; }
+  .cell.active-cell { background: #fde68a; }
+
+  /* Invisible input — font-size 16px prevents iOS auto-zoom on focus */
+  .cell input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: text;
+    font-size: 16px;
+    border: none;
+    background: transparent;
+    z-index: 2;
+    caret-color: transparent;
+  }
+
+  .cell-letter {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(0.9rem, calc(var(--cell) * 0.52), 2.2rem);
+    font-weight: 700;
+    color: #1a1008;
+    line-height: 1;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 1;
+    position: relative;
+  }
+  .cell-letter.user { color: #1a4a8a; }
+  .cell-letter.wrong { color: #cc3333; }
+
+  .cell-number {
+    position: absolute; top: 2px; left: 3px;
+    font-family: 'DM Mono', monospace;
+    font-size: clamp(0.45rem, calc(var(--cell) * 0.18), 0.72rem);
+    color: #555; line-height: 1;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  /* CLUES */
+  .clues-panel {
+    width: 100%;
+    max-width: 700px;
+  }
+  @media (min-width: 760px) {
+    .clues-panel {
+      flex: 1;
+      min-width: 260px;
+      max-width: 480px;
+      max-height: 90vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--dark-gold) transparent;
+    }
+  }
+
+  .clues-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+  }
+  @media (max-width: 460px) {
+    .clues-columns { grid-template-columns: 1fr; }
+  }
+
+  .clues-section h2 {
+    font-family: 'Playfair Display', serif;
+    color: var(--gold);
+    font-size: 1.3rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid var(--dark-gold);
+    padding-bottom: 7px;
+    margin-bottom: 12px;
+    padding-top: 4px;
+    position: sticky; top: 0;
+    background: var(--black);
+    z-index: 1;
+  }
+
+  .clue-list { list-style: none; margin-bottom: 24px; }
+
+  .clue-item {
+    display: flex; gap: 8px;
+    margin-bottom: 11px;
+    cursor: pointer;
+    padding: 6px 7px;
+    border-radius: 2px;
+    border-left: 2px solid transparent;
+    transition: all 0.12s;
+    touch-action: manipulation;
+  }
+  .clue-item:hover { background: rgba(201,168,76,0.1); border-left-color: var(--dark-gold); }
+  .clue-item.active { background: rgba(201,168,76,0.18); border-left-color: var(--gold); }
+
+  .clue-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.95rem; color: var(--gold);
+    min-width: 26px; padding-top: 2px;
+    flex-shrink: 0; text-align: right;
+  }
+
+  .clue-text {
+    font-family: 'Spectral', serif;
+    font-size: 1.05rem; color: var(--dim); line-height: 1.55;
+  }
+  .clue-text em { font-style: italic; color: #7a6a50; font-size: 0.95rem; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Grotsword</h1>
+  <div class="rule"><span class="sub">bengutteridge.github.io/grotsword</span></div>
+  <button class="check-btn" onclick="checkAnswers()">✓ Check Answers</button>
+  <div class="check-msg" id="checkMsg"></div>
+</header>
+
+<div class="main">
+  <div class="grid-wrapper">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="clues-panel">
+    <div class="clues-columns">
+      <div class="clues-section">
+        <h2>Across</h2>
+        <ul class="clue-list" id="across-list"></ul>
+      </div>
+      <div class="clues-section">
+        <h2>Down</h2>
+        <ul class="clue-list" id="down-list"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Grid layout (5×5):
+// Row 0: T  ■  G  R  O
+// Row 1: ■  G  R  O  T
+// Row 2: G  R  O  T  ■
+// Row 3: R  O  T  ■  G
+// Row 4: O  T  ■  G  R
+const SOLUTION = [
+  "T"," ","G","R","O",
+  " ","G","R","O","T",
+  "G","R","O","T"," ",
+  "R","O","T"," ","G",
+  "O","T"," ","G","R"
+];
+
+const COLS = 5, ROWS = 5;
+const STORAGE_KEY = 'grotsword-v1';
+
+function isWhite(r, c) {
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return false;
+  return SOLUTION[r * COLS + c] !== ' ';
+}
+
+// User's entered letters — load from localStorage or blank
+let userGrid = Array(ROWS * COLS).fill('');
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) userGrid = JSON.parse(saved);
+} catch(e) {}
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(userGrid)); } catch(e) {}
+}
+
+// Number cells
+const cellNums = {};
+const numberedCells = {};
+let nn = 1;
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    if (!isWhite(r, c)) continue;
+    const sA = !isWhite(r, c-1) && isWhite(r, c);
+    const sD = !isWhite(r-1, c) && isWhite(r, c);
+    // Only number if it starts a multi-cell word OR a defined single-cell word
+    const aLen = (() => { let cc = c; while (isWhite(r, cc)) cc++; return cc - c; })();
+    const dLen = (() => { let rr = r; while (isWhite(rr, c)) rr++; return rr - r; })();
+    const startsA = sA && aLen >= 1;
+    const startsD = sD && dLen >= 1;
+    if (startsA || startsD) {
+      cellNums[`${r},${c}`] = nn;
+      numberedCells[nn] = { r, c, sA: startsA, sD: startsD };
+      nn++;
+    }
+  }
+}
+
+// Clue data
+// Numbered cells:
+//  1 (0,0): 1A=T,    1D=T
+//  2 (0,2): 2A=GRO,  2D=GROT
+//  3 (0,3): 3D=ROT
+//  4 (0,4): 4D=OT
+//  5 (1,1): 5A=GROT, 5D=GROT
+//  6 (2,0): 6A=GROT, 6D=GRO
+//  7 (3,0): 7A=ROT
+//  8 (3,4): 8A=G,    8D=GR
+//  9 (4,0): 9A=OT
+// 10 (4,3): 10A=GR,  10D=G
+const clueData = {
+  across: {
+    1:  { clue: "Teatime", len: "1" },
+    2:  { clue: "Where to request death certificate for Musk's half-baked chatbot?", len: "3" },
+    5:  { clue: "Front covers great read on toilet", len: "4" },
+    6:  { clue: "Grime got right inside", len: "4" },
+    7:  { clue: "Expunge deranged Byronic blather", len: "3" },
+    8:  { clue: "Hole in one", len: "1" },
+    9:  { clue: "Cutting overtime", len: "2" },
+    10: { clue: "Heard grizzly end", len: "2" },
+  },
+  down: {
+    1:  { clue: "Starting to take three to tango!", len: "1" },
+    2:  { clue: "An unpleasant thing, Greek foot. Field officer quit, let out a scream.", len: "4" },
+    3:  { clue: "Third helpings of pork roast and crumble", len: "3" },
+    4:  { clue: "Chart-topping Genesis numbers, say", len: "2" },
+    5:  { clue: "Cave-wandering trog", len: "4" },
+    6:  { clue: "Just short of twelve dozen", len: "3" },
+    8:  { clue: "Grumbles, out of bog roll", len: "2" },
+    10: { clue: "Gram of ganja", len: "1" },
+  }
+};
+
+// ── BUILD GRID ──────────────────────────────────────────────────────────────
+const gridEl = document.getElementById('grid');
+const cellEls = [];
+
+let activeCellIdx = -1;
+let activeDir = 'across';
+let activeClueEl = null;
+
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const idx = r * COLS + c;
+    const cell = document.createElement('div');
+    const white = SOLUTION[idx] !== ' ';
+    cell.className = 'cell' + (white ? '' : ' black');
+    cell.dataset.idx = idx;
+    cell.dataset.r = r;
+    cell.dataset.c = c;
+
+    if (white) {
+      const num = cellNums[`${r},${c}`];
+      if (num) {
+        const s = document.createElement('span');
+        s.className = 'cell-number';
+        s.textContent = num;
+        cell.appendChild(s);
+      }
+
+      const inp = document.createElement('input');
+      inp.type = 'text';
+      inp.maxLength = 2;
+      inp.autocomplete = 'off';
+      inp.autocorrect = 'off';
+      inp.autocapitalize = 'characters';
+      inp.spellcheck = false;
+      cell.appendChild(inp);
+
+      const l = document.createElement('span');
+      l.className = 'cell-letter user';
+      l.textContent = userGrid[idx] || '';
+      cell.appendChild(l);
+
+      cell.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+        if (activeCellIdx === idx) {
+          activeDir = activeDir === 'across' ? 'down' : 'across';
+        }
+        focusCell(idx, true);
+      });
+
+      inp.addEventListener('focus', () => focusCell(idx, false));
+
+      inp.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace') {
+          e.preventDefault();
+          if (userGrid[idx]) {
+            userGrid[idx] = '';
+            renderCell(idx);
+            save();
+          } else {
+            moveCaret(-1);
+          }
+        } else if (e.key === 'Delete') {
+          e.preventDefault();
+          userGrid[idx] = '';
+          renderCell(idx);
+          save();
+        } else if (e.key === 'ArrowRight') {
+          e.preventDefault(); activeDir = 'across'; moveCaret(1);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault(); activeDir = 'across'; moveCaret(-1);
+        } else if (e.key === 'ArrowDown') {
+          e.preventDefault(); activeDir = 'down'; moveCaret(1);
+        } else if (e.key === 'ArrowUp') {
+          e.preventDefault(); activeDir = 'down'; moveCaret(-1);
+        } else if (e.key === 'Tab') {
+          e.preventDefault();
+          moveToNextWord(e.shiftKey ? -1 : 1);
+        }
+      });
+
+      inp.addEventListener('input', (e) => {
+        const val = inp.value.replace(/[^a-zA-Z]/g, '');
+        const ch = val.slice(-1).toUpperCase();
+        inp.value = '';
+        if (!ch) return;
+        userGrid[idx] = ch;
+        renderCell(idx);
+        save();
+        moveCaret(1);
+      });
+    }
+
+    gridEl.appendChild(cell);
+    cellEls.push(cell);
+  }
+}
+
+function renderCell(idx) {
+  const cell = cellEls[idx];
+  if (!cell || SOLUTION[idx] === ' ') return;
+  const l = cell.querySelector('.cell-letter');
+  if (!l) return;
+  l.textContent = userGrid[idx] || '';
+  l.className = 'cell-letter user';
+}
+
+// ── FOCUS / NAVIGATION ───────────────────────────────────────────────────────
+function getCellIdx(r, c) { return r * COLS + c; }
+
+function focusCell(idx, scrollToClue = false) {
+  if (idx < 0 || idx >= SOLUTION.length) return;
+  const r = Math.floor(idx / COLS), c = idx % COLS;
+  if (!isWhite(r, c)) return;
+
+  activeCellIdx = idx;
+  highlightActiveWord(scrollToClue);
+
+  const inp = cellEls[idx] ? cellEls[idx].querySelector('input') : null;
+  if (inp) { inp.value = ''; inp.focus({ preventScroll: true }); }
+}
+
+function highlightActiveWord(scrollToClue) {
+  cellEls.forEach(el => { el.classList.remove('highlight', 'active-cell'); });
+  if (activeClueEl) activeClueEl.classList.remove('active');
+
+  if (activeCellIdx < 0) return;
+  const r = Math.floor(activeCellIdx / COLS), c = activeCellIdx % COLS;
+
+  cellEls[activeCellIdx].classList.add('active-cell');
+
+  let clueNum = null;
+  if (activeDir === 'across') {
+    let cc = c;
+    while (isWhite(r, cc - 1)) cc--;
+    let tc = cc;
+    while (isWhite(r, tc)) {
+      if (tc !== c) cellEls[getCellIdx(r, tc)].classList.add('highlight');
+      tc++;
+    }
+    clueNum = cellNums[`${r},${cc}`];
+    setActiveClue(clueNum, 'across', scrollToClue);
+  } else {
+    let rr = r;
+    while (isWhite(rr - 1, c)) rr--;
+    let tr = rr;
+    while (isWhite(tr, c)) {
+      if (tr !== r) cellEls[getCellIdx(tr, c)].classList.add('highlight');
+      tr++;
+    }
+    clueNum = cellNums[`${rr},${c}`];
+    setActiveClue(clueNum, 'down', scrollToClue);
+  }
+}
+
+function setActiveClue(num, dir, doScroll) {
+  if (!num) return;
+  const listId = dir === 'across' ? 'across-list' : 'down-list';
+  const li = document.querySelector(`#${listId} [data-num="${num}"]`);
+  if (!li) return;
+  if (activeClueEl) activeClueEl.classList.remove('active');
+  activeClueEl = li;
+  li.classList.add('active');
+  if (doScroll) li.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function moveCaret(delta) {
+  if (activeCellIdx < 0) return;
+  const r = Math.floor(activeCellIdx / COLS), c = activeCellIdx % COLS;
+  if (activeDir === 'across') {
+    let nc = c + delta;
+    while (nc >= 0 && nc < COLS && !isWhite(r, nc)) nc += delta;
+    if (nc >= 0 && nc < COLS && isWhite(r, nc)) focusCell(getCellIdx(r, nc), false);
+  } else {
+    let nr = r + delta;
+    while (nr >= 0 && nr < ROWS && !isWhite(nr, c)) nr += delta;
+    if (nr >= 0 && nr < ROWS && isWhite(nr, c)) focusCell(getCellIdx(nr, c), false);
+  }
+}
+
+function moveToNextWord(delta) {
+  const words = [];
+  for (const [num, info] of Object.entries(numberedCells).sort((a,b) => Number(a[0])-Number(b[0]))) {
+    if (info.sA) words.push({ r: info.r, c: info.c, dir: 'across' });
+    if (info.sD) words.push({ r: info.r, c: info.c, dir: 'down' });
+  }
+  const r = Math.floor(activeCellIdx / COLS), c = activeCellIdx % COLS;
+  let cur = -1;
+  let startR = r, startC = c;
+  if (activeDir === 'across') { while (isWhite(startR, startC - 1)) startC--; }
+  else { while (isWhite(startR - 1, startC)) startR--; }
+  for (let i = 0; i < words.length; i++) {
+    if (words[i].r === startR && words[i].c === startC && words[i].dir === activeDir) { cur = i; break; }
+  }
+  const next = ((cur + delta) + words.length) % words.length;
+  activeDir = words[next].dir;
+  focusCell(getCellIdx(words[next].r, words[next].c), true);
+}
+
+// ── CLUE LIST CLICK ──────────────────────────────────────────────────────────
+function buildList(listEl, clues, dir) {
+  Object.keys(clues).map(Number).sort((a, b) => a - b).forEach(num => {
+    const { clue, len } = clues[num];
+    const li = document.createElement('li');
+    li.className = 'clue-item';
+    li.dataset.num = num;
+    li.dataset.dir = dir;
+    li.innerHTML = `<span class="clue-num">${num}</span><span class="clue-text">${clue} <em>(${len})</em></span>`;
+    li.addEventListener('click', () => {
+      const info = numberedCells[num];
+      if (!info) return;
+      activeDir = dir;
+      focusCell(getCellIdx(info.r, info.c), true);
+      cellEls[getCellIdx(info.r, info.c)].scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    });
+    listEl.appendChild(li);
+  });
+}
+
+buildList(document.getElementById('across-list'), clueData.across, 'across');
+buildList(document.getElementById('down-list'), clueData.down, 'down');
+
+// ── CHECK ANSWERS ────────────────────────────────────────────────────────────
+function checkAnswers() {
+  const correctCells = new Set();
+  const allWords = [];
+
+  for (const [numStr, info] of Object.entries(numberedCells)) {
+    if (info.sA) {
+      const cells = [];
+      let cc = info.c;
+      while (isWhite(info.r, cc)) { cells.push(getCellIdx(info.r, cc)); cc++; }
+      allWords.push(cells);
+    }
+    if (info.sD) {
+      const cells = [];
+      let rr = info.r;
+      while (isWhite(rr, info.c)) { cells.push(getCellIdx(rr, info.c)); rr++; }
+      allWords.push(cells);
+    }
+  }
+
+  let allCorrect = true;
+
+  for (const cells of allWords) {
+    const wordCorrect = cells.every(idx => {
+      const entered = (userGrid[idx] || '').toUpperCase();
+      const answer = SOLUTION[idx].toUpperCase();
+      return entered === answer;
+    });
+
+    if (wordCorrect) {
+      cells.forEach(idx => correctCells.add(idx));
+    } else {
+      allCorrect = false;
+    }
+  }
+
+  for (let idx = 0; idx < SOLUTION.length; idx++) {
+    if (SOLUTION[idx] === ' ') continue;
+    const cell = cellEls[idx];
+    const l = cell.querySelector('.cell-letter');
+    if (!l) continue;
+
+    if (correctCells.has(idx)) {
+      l.className = 'cell-letter';
+    } else {
+      userGrid[idx] = '';
+      l.textContent = '';
+      l.className = 'cell-letter user';
+    }
+  }
+
+  save();
+
+  const msg = document.getElementById('checkMsg');
+  if (allCorrect) {
+    msg.textContent = '✓ Correct — well grotsworded!';
+    msg.className = 'check-msg correct';
+  } else {
+    msg.textContent = 'Incorrect words cleared. Keep going!';
+    msg.className = 'check-msg';
+  }
+  setTimeout(() => { msg.textContent = ''; msg.className = 'check-msg'; }, 4000);
+}
+
+// ── INIT: render saved letters ───────────────────────────────────────────────
+for (let idx = 0; idx < SOLUTION.length; idx++) {
+  if (SOLUTION[idx] !== ' ' && userGrid[idx]) {
+    const cell = cellEls[idx];
+    const l = cell ? cell.querySelector('.cell-letter') : null;
+    if (l) l.textContent = userGrid[idx];
+  }
+}
+</script>
+</body>
+</html>
