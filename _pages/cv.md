@@ -14,11 +14,11 @@ redirect_from:
 
 -->
 
-PDF copy of my CV available [here](/files/Gutteridge_CV_Mar_2026.pdf).
+Download my CV [here](/files/Gutteridge_CV_Mar_2026.pdf)!
 
 {% include base_path %}
 
-## Education
+<!-- ## Education
 ---
 * **University of Oxford** (2021-2026): DPhil Engineering Science
 * **University of Oxford** (2017-2021): MEng Engineering Science (First class)
@@ -128,4 +128,4 @@ Kiskin, I., Sinka, M., Cobb, A.D., Rafique, W., Wang, L., Zilli, D., **Gutteridg
 
 Published in Methods in Ecology and Evolution, 12(10), pp.1848-1859.
 
-Sinka, M.E., Zilli, D., Li, Y., Kiskin, I., Kirkham, D., Rafique, W., Wang, L., Chan, H., **Gutteridge, B.**, Herreros‐Moya, E. and Portwood, H., 2021. HumBug–An Acoustic Mosquito Monitoring Tool for use on budget smartphones. Methods in Ecology and Evolution, 12(10), pp.1848-1859.
+Sinka, M.E., Zilli, D., Li, Y., Kiskin, I., Kirkham, D., Rafique, W., Wang, L., Chan, H., **Gutteridge, B.**, Herreros‐Moya, E. and Portwood, H., 2021. HumBug–An Acoustic Mosquito Monitoring Tool for use on budget smartphones. Methods in Ecology and Evolution, 12(10), pp.1848-1859. -->
