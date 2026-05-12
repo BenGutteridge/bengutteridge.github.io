@@ -7,7 +7,7 @@ title: "Oxford Pub Guide"
 ### [Oxford Pub Guide: A Primer](/pubs/background)
 -->
 
-As of 2024, my friend Rob and I have been to all 94 pubs within the Oxford ringroad. 
+As of 2026, my friend Rob and I have been to all 94 pubs within the Oxford ringroad. 
 We've attempted to rate every single pub on a 5-star scale, as well as provide other useful information.
 
 Pubs are assessed on a number of traits, primarily range and quality of drinks, decor, and ambience. 
@@ -26,6 +26,7 @@ the spiritual successor to Martin’s seminal online opus.
 ### Notes
 * The table can be a little temperamental on mobile; it can be accessed directly, and less problematically, 
 [here](https://script.google.com/macros/s/AKfycbzUWW0QWKD_qNyf5518wMtHL_qXADF_xqaasInNm3ZtAvuj4owHvvwXHFPRKv_GQ_Q5sA/exec).
+* Google Scripts can misbehave with some ad blockers; if the table does not load, temporarily disabling your blocker will probably fix it.
 * Pubs not yet visited, or unknown fields, are marked with 'n/a'.
 * In the Area column we distinguish between 'Cowley', beyond Temple Cowley, and 'Cowley & Iffley Roads', the area just beyond Magdalen bridge, as both are often referred to as Cowley. 
 * There are more than 94 entries as some pubs have permanently closed since the beginning of this project, and others are outside the ringroad (though still in the surrounding villages).
