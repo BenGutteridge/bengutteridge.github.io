@@ -1,0 +1,763 @@
+---
+layout: null
+permalink: /fathers-day-26/
+---
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Happy Father's Day!!!</title>
+<style>
+  :root {
+    --bg: #ffffff;
+    --red: #cc0000;
+    --blue: #0044cc;
+    --dark: #111111;
+    --cell: clamp(28px, calc((100vw - 52px) / 9), 58px);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 28px 10px 72px;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+  }
+
+  header { text-align: center; margin-bottom: 24px; padding: 0 10px; }
+
+  h1 {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    color: var(--red);
+    font-size: clamp(2rem, 7vw, 3.4rem);
+    margin-bottom: 10px;
+    line-height: 1.15;
+  }
+
+  .sub {
+    display: block;
+    color: var(--blue);
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    margin-bottom: 2px;
+  }
+
+  .sig {
+    display: block;
+    color: var(--blue);
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: clamp(1rem, 3vw, 1.3rem);
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+
+  .check-btn {
+    margin-top: 14px;
+    background: var(--red);
+    border: 3px solid var(--dark);
+    color: #ffffff;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: 0.9rem;
+    padding: 8px 22px;
+    cursor: pointer;
+    transition: all 0.15s;
+    touch-action: manipulation;
+    border-radius: 4px;
+  }
+  .check-btn:hover { background: #aa0000; }
+
+  .check-msg {
+    margin-top: 8px;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: 0.85rem;
+    color: var(--blue);
+    min-height: 1.2em;
+  }
+  .check-msg.correct { color: #007700; }
+
+  .reset-btn {
+    margin-top: 8px;
+    background: none;
+    border: 2px solid var(--blue);
+    color: var(--blue);
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: 0.75rem;
+    padding: 5px 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+    touch-action: manipulation;
+    border-radius: 4px;
+  }
+  .reset-btn:hover { background: #ddeeff; }
+
+  .main {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+    max-width: 1300px;
+    width: 100%;
+  }
+  @media (min-width: 900px) {
+    .main { flex-direction: row; align-items: flex-start; justify-content: center; }
+  }
+
+  .grid-wrapper {
+    background: var(--bg);
+    padding: clamp(6px, 1.5vw, 14px);
+    border: 4px solid var(--red);
+    box-shadow: 5px 5px 0 var(--blue);
+    flex-shrink: 0;
+    max-width: 100%;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(9, var(--cell));
+    grid-template-rows: repeat(9, var(--cell));
+    border-left: 2px solid var(--dark);
+    border-top: 2px solid var(--dark);
+  }
+
+  .cell {
+    width: var(--cell); height: var(--cell);
+    border-right: 2px solid var(--dark);
+    border-bottom: 2px solid var(--dark);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+    background: #ffffff;
+    cursor: text;
+  }
+  .cell.black { background: var(--dark); cursor: default; }
+  .cell.highlight { background: #ddeeff; }
+  .cell.active-cell { background: #bbddff; }
+
+  .cell input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: text;
+    font-size: 16px;
+    border: none;
+    background: transparent;
+    z-index: 2;
+    caret-color: transparent;
+  }
+
+  .cell-letter {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: clamp(0.6rem, calc(var(--cell) * 0.48), 1.3rem);
+    font-weight: bold;
+    color: var(--dark);
+    line-height: 1;
+    text-transform: uppercase;
+    pointer-events: none;
+    z-index: 1;
+    position: relative;
+  }
+  .cell-letter.user { color: var(--blue); }
+  .cell-letter.wrong { color: var(--red); }
+
+  .cell-number {
+    position: absolute; top: 1px; left: 2px;
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: clamp(0.2rem, calc(var(--cell) * 0.2), 0.44rem);
+    color: var(--red);
+    line-height: 1;
+    z-index: 1;
+    pointer-events: none;
+  }
+
+  .clues-panel {
+    width: 100%;
+    max-width: 700px;
+  }
+  @media (min-width: 900px) {
+    .clues-panel {
+      flex: 1;
+      min-width: 280px;
+      max-width: 520px;
+      max-height: 90vh;
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: var(--blue) transparent;
+    }
+  }
+
+  .clues-columns {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+  }
+  @media (max-width: 500px) {
+    .clues-columns { grid-template-columns: 1fr; }
+  }
+
+  .clues-section h2 {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    color: var(--red);
+    font-size: 1.3rem;
+    border-bottom: 3px solid var(--blue);
+    padding-bottom: 6px;
+    margin-bottom: 12px;
+    padding-top: 4px;
+    position: sticky; top: 0;
+    background: var(--bg);
+    z-index: 1;
+  }
+
+  .clue-list { list-style: none; margin-bottom: 24px; }
+
+  .clue-item {
+    display: flex; gap: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    padding: 5px 6px;
+    border-radius: 4px;
+    border-left: 3px solid transparent;
+    transition: all 0.12s;
+    touch-action: manipulation;
+  }
+  .clue-item:hover { background: #ddeeff; border-left-color: var(--blue); }
+  .clue-item.active { background: #ddeeff; border-left-color: var(--red); }
+
+  .clue-num {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: 0.9rem;
+    color: var(--blue);
+    font-weight: bold;
+    min-width: 24px;
+    padding-top: 2px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+
+  .clue-text {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: 0.95rem;
+    color: var(--dark);
+    line-height: 1.5;
+  }
+  .clue-text em { font-style: italic; color: #666666; font-size: 0.88rem; }
+
+  /* ── VICTORY OVERLAY ── */
+  #victoryOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 68, 0.88);
+    z-index: 999;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-direction: column;
+  }
+  #victoryOverlay.show {
+    display: flex;
+  }
+
+  .victory-inner {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+
+  .victory-msg {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    font-size: clamp(2rem, 8vw, 4rem);
+    color: #ffffff;
+    text-shadow: 3px 3px 0 var(--red);
+    animation: vPulse 0.7s ease-in-out infinite alternate;
+    text-align: center;
+  }
+
+  @keyframes vPulse {
+    from { transform: scale(1) rotate(-2deg); }
+    to   { transform: scale(1.1) rotate(2deg); }
+  }
+
+  .victory-gif {
+    max-width: min(300px, 75vw);
+    border: 5px solid #ffffff;
+    box-shadow: 0 0 24px var(--red), 0 0 48px var(--blue);
+    display: block;
+  }
+
+  .victory-tap {
+    font-family: "Comic Sans MS", "Comic Sans", cursive;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.85rem;
+    margin-top: 4px;
+  }
+
+  /* sparkles */
+  .sparks {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .sp {
+    position: absolute;
+    font-size: 1.6rem;
+    animation: spAnim 1.4s ease-out infinite;
+    opacity: 0;
+  }
+
+  @keyframes spAnim {
+    0%   { opacity: 1; transform: scale(0.3) translate(0, 0) rotate(0deg); }
+    60%  { opacity: 1; }
+    100% { opacity: 0; transform: scale(1.4) translate(var(--tx), var(--ty)) rotate(var(--tr)); }
+  }
+
+  .sp:nth-child(1)  { top: 10%; left: 50%; --tx: -80px; --ty: -90px; --tr: 120deg; animation-delay: 0s;    }
+  .sp:nth-child(2)  { top: 20%; left: 80%; --tx:  80px; --ty: -70px; --tr: -90deg; animation-delay: 0.15s; }
+  .sp:nth-child(3)  { top: 50%; left: 90%; --tx:  90px; --ty:  10px; --tr: 200deg; animation-delay: 0.3s;  }
+  .sp:nth-child(4)  { top: 80%; left: 75%; --tx:  70px; --ty:  80px; --tr: -150deg;animation-delay: 0.45s; }
+  .sp:nth-child(5)  { top: 90%; left: 40%; --tx: -20px; --ty:  90px; --tr: 80deg;  animation-delay: 0.6s;  }
+  .sp:nth-child(6)  { top: 80%; left: 15%; --tx: -80px; --ty:  70px; --tr: -100deg;animation-delay: 0.75s; }
+  .sp:nth-child(7)  { top: 50%; left: 5%;  --tx: -90px; --ty: -10px; --tr: 160deg; animation-delay: 0.9s;  }
+  .sp:nth-child(8)  { top: 20%; left: 20%; --tx: -80px; --ty: -80px; --tr: -200deg;animation-delay: 1.05s; }
+  .sp:nth-child(9)  { top: 5%;  left: 35%; --tx: -30px; --ty: -100px;--tr: 60deg;  animation-delay: 0.22s; }
+  .sp:nth-child(10) { top: 35%; left: 85%; --tx:  95px; --ty: -40px; --tr: -70deg; animation-delay: 0.55s; }
+  .sp:nth-child(11) { top: 65%; left: 10%; --tx: -85px; --ty:  50px; --tr: 130deg; animation-delay: 0.37s; }
+  .sp:nth-child(12) { top: 5%;  left: 65%; --tx:  40px; --ty: -95px; --tr: -160deg;animation-delay: 0.82s; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>👨🏽Happy Father's Day!!!👨🏽</h1>
+  <span class="sub">Let me know if you're getting tired of this</span>
+  <span class="sig">Love, Ben x</span>
+  <br>
+  <button class="check-btn" onclick="checkAnswers()">&#10003; Check Answers</button>
+  <div class="check-msg" id="checkMsg"></div>
+  <br>
+  <button class="reset-btn" id="resetBtn">&#8635; Reset</button>
+  <div class="check-msg" id="resetMsg" style="display:none;">
+    Reset all progress? This cannot be undone.
+    <span style="margin-left:10px;">
+      <span style="cursor:pointer;color:var(--red);font-size:0.85rem;" id="resetConfirm">Yes, reset</span>
+      &nbsp;/&nbsp;
+      <span style="cursor:pointer;color:var(--blue);font-size:0.85rem;" id="resetCancel">Cancel</span>
+    </span>
+  </div>
+</header>
+
+<div class="main">
+  <div class="grid-wrapper">
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <div class="clues-panel">
+    <div class="clues-columns">
+      <div class="clues-section">
+        <h2>Across</h2>
+        <ul class="clue-list" id="across-list"></ul>
+      </div>
+      <div class="clues-section">
+        <h2>Down</h2>
+        <ul class="clue-list" id="down-list"></ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Victory overlay -->
+<div id="victoryOverlay" onclick="this.classList.remove('show')">
+  <div class="victory-inner">
+    <div class="sparks">
+      <span class="sp">&#10024;</span>
+      <span class="sp">&#11088;</span>
+      <span class="sp">&#10024;</span>
+      <span class="sp">&#127881;</span>
+      <span class="sp">&#10024;</span>
+      <span class="sp">&#11088;</span>
+      <span class="sp">&#10024;</span>
+      <span class="sp">&#127881;</span>
+      <span class="sp">&#10024;</span>
+      <span class="sp">&#11088;</span>
+      <span class="sp">&#10024;</span>
+      <span class="sp">&#127881;</span>
+    </div>
+    <div class="victory-msg">&#127881; Correct!!! &#127881;</div>
+    <img src="/files/1984260.gif" alt="" class="victory-gif">
+    <div class="victory-tap">(tap anywhere to close)</div>
+  </div>
+</div>
+
+<script>
+const SOLUTION = [
+  "B","O","A","R"," ","P","A","P","A",
+  "E"," ","R"," ","F","E","R","A","L",
+  "G"," ","C"," "," ","P","R","I","G",
+  "G","C","H","Q"," ","P"," ","N"," ",
+  "E"," ","A"," ","L","E","F","T","Y",
+  "D","O","I","N"," ","R"," ","I"," ",
+  " "," ","S","A","M","S","O","N"," ",
+  "B","U","M"," ","O"," ","N","G","O",
+  " "," "," ","R","O","T"," "," "," "
+];
+
+const COLS = 9, ROWS = 9;
+const STORAGE_KEY = "fathers-day-crossword-2026";
+
+function isWhite(r, c) {
+  if (r < 0 || r >= ROWS || c < 0 || c >= COLS) return false;
+  return SOLUTION[r * COLS + c] !== " ";
+}
+
+let userGrid = Array(ROWS * COLS).fill("");
+try {
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved) userGrid = JSON.parse(saved);
+} catch(e) {}
+
+function save() {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(userGrid)); } catch(e) {}
+}
+
+const cellNums = {};
+const numberedCells = {};
+let nn = 1;
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    if (!isWhite(r, c)) continue;
+    const sA = !isWhite(r, c-1) && isWhite(r, c+1);
+    const sD = !isWhite(r-1, c) && isWhite(r+1, c);
+    if (sA || sD) {
+      cellNums[r+","+c] = nn;
+      numberedCells[nn] = { r, c, sA, sD };
+      nn++;
+    }
+  }
+}
+
+const clueData = {
+  across: {
+    1:  { clue: "Daddy Pig's loud snooze", len: "4" },
+    3:  { clue: "Smurf pee", len: "4" },
+    7:  { clue: "Corrupt ref allows carrying, wild!", len: "5" },
+    8:  { clue: "World cup rigged! Inside job to spoil sport", len: "4" },
+    9:  { clue: "British intelligence decode '73817'", len: "4" },
+    10: { clue: "Southern poor cheered for progressive", len: "5" },
+    11: { clue: "Kill rampaging dino", len: "2,2" },
+    13: { clue: "He lost his hair en masse, reportedly &#8212; upsetting", len: "6" },
+    16: { clue: "Arsenal's back 4 sent off &#8212; they get sodomised", len: "3" },
+    17: { clue: "Brewing festive drink for charity", len: "3" },
+    18: { clue: "Third helpings of pork roast and crumble", len: "3" },
+  },
+  down: {
+    1:  { clue: "Pleaded for breakfast in bed", len: "6" },
+    2:  { clue: "Roll charisma to woo yon mayden fayre?", len: "8" },
+    3:  { clue: "Threepenny seer fabricated spiciest titbits", len: "7" },
+    4:  { clue: "Pirates cry starting at &ldquo;Romeo, Romeo&rdquo;", len: "3" },
+    5:  { clue: "Ben beaten into state of exhaustion, nailed to wall and stared at", len: "8" },
+    6:  { clue: "World cup team decimated by Morocco and Tunisia", len: "3" },
+    12: { clue: "Reduced salt, or none", len: "2" },
+    14: { clue: "Low waning gibbous", len: "3" },
+    15: { clue: "Excessive masturbation without an 'ism' implies state of arousal", len: "2" },
+  }
+};
+
+const gridEl = document.getElementById("grid");
+const cellEls = [];
+
+let activeCellIdx = -1;
+let activeDir = "across";
+let activeClueEl = null;
+
+for (let r = 0; r < ROWS; r++) {
+  for (let c = 0; c < COLS; c++) {
+    const idx = r * COLS + c;
+    const cell = document.createElement("div");
+    const white = SOLUTION[idx] !== " ";
+    cell.className = "cell" + (white ? "" : " black");
+    cell.dataset.idx = idx;
+    cell.dataset.r = r;
+    cell.dataset.c = c;
+
+    if (white) {
+      const num = cellNums[r+","+c];
+      if (num) {
+        const s = document.createElement("span");
+        s.className = "cell-number";
+        s.textContent = num;
+        cell.appendChild(s);
+      }
+
+      const inp = document.createElement("input");
+      inp.type = "text";
+      inp.maxLength = 2;
+      inp.autocomplete = "off";
+      inp.autocorrect = "off";
+      inp.autocapitalize = "characters";
+      inp.spellcheck = false;
+      cell.appendChild(inp);
+
+      const l = document.createElement("span");
+      l.className = "cell-letter user";
+      l.textContent = userGrid[idx] || "";
+      cell.appendChild(l);
+
+      cell.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        if (activeCellIdx === idx) {
+          activeDir = activeDir === "across" ? "down" : "across";
+        }
+        focusCell(idx, true);
+      });
+
+      inp.addEventListener("focus", () => focusCell(idx, false));
+
+      inp.addEventListener("keydown", (e) => {
+        if (e.key === "Backspace") {
+          e.preventDefault();
+          if (userGrid[idx]) {
+            userGrid[idx] = "";
+            renderCell(idx);
+            save();
+          } else {
+            moveCaret(-1);
+          }
+        } else if (e.key === "Delete") {
+          e.preventDefault();
+          userGrid[idx] = "";
+          renderCell(idx);
+          save();
+        } else if (e.key === "ArrowRight") {
+          e.preventDefault(); activeDir = "across"; moveCaret(1);
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault(); activeDir = "across"; moveCaret(-1);
+        } else if (e.key === "ArrowDown") {
+          e.preventDefault(); activeDir = "down"; moveCaret(1);
+        } else if (e.key === "ArrowUp") {
+          e.preventDefault(); activeDir = "down"; moveCaret(-1);
+        } else if (e.key === "Tab") {
+          e.preventDefault();
+          moveToNextWord(e.shiftKey ? -1 : 1);
+        }
+      });
+
+      inp.addEventListener("input", (e) => {
+        const val = inp.value.replace(/[^a-zA-Z]/g, "");
+        const ch = val.slice(-1).toUpperCase();
+        inp.value = "";
+        if (!ch) return;
+        userGrid[idx] = ch;
+        renderCell(idx);
+        save();
+        moveCaret(1);
+      });
+    }
+
+    gridEl.appendChild(cell);
+    cellEls.push(cell);
+  }
+}
+
+function renderCell(idx) {
+  const cell = cellEls[idx];
+  if (!cell || SOLUTION[idx] === " ") return;
+  const l = cell.querySelector(".cell-letter");
+  if (!l) return;
+  l.textContent = userGrid[idx] || "";
+  l.className = "cell-letter user";
+}
+
+function getCellIdx(r, c) { return r * COLS + c; }
+
+function focusCell(idx, scrollToClue) {
+  if (idx < 0 || idx >= SOLUTION.length) return;
+  const r = Math.floor(idx / COLS), c = idx % COLS;
+  if (!isWhite(r, c)) return;
+  activeCellIdx = idx;
+  highlightActiveWord(scrollToClue);
+  const inp = cellEls[idx] ? cellEls[idx].querySelector("input") : null;
+  if (inp) { inp.value = ""; inp.focus({ preventScroll: true }); }
+}
+
+function highlightActiveWord(scrollToClue) {
+  cellEls.forEach(el => { el.classList.remove("highlight", "active-cell"); });
+  if (activeClueEl) activeClueEl.classList.remove("active");
+  if (activeCellIdx < 0) return;
+  const r = Math.floor(activeCellIdx / COLS), c = activeCellIdx % COLS;
+  cellEls[activeCellIdx].classList.add("active-cell");
+  let clueNum = null;
+  if (activeDir === "across") {
+    let cc = c;
+    while (isWhite(r, cc - 1)) cc--;
+    let tc = cc;
+    while (isWhite(r, tc)) {
+      if (tc !== c) cellEls[getCellIdx(r, tc)].classList.add("highlight");
+      tc++;
+    }
+    clueNum = cellNums[r+","+cc];
+    setActiveClue(clueNum, "across", scrollToClue);
+  } else {
+    let rr = r;
+    while (isWhite(rr - 1, c)) rr--;
+    let tr = rr;
+    while (isWhite(tr, c)) {
+      if (tr !== r) cellEls[getCellIdx(tr, c)].classList.add("highlight");
+      tr++;
+    }
+    clueNum = cellNums[rr+","+c];
+    setActiveClue(clueNum, "down", scrollToClue);
+  }
+}
+
+function setActiveClue(num, dir, doScroll) {
+  if (!num) return;
+  const listId = dir === "across" ? "across-list" : "down-list";
+  const li = document.querySelector("#" + listId + " [data-num='" + num + "']");
+  if (!li) return;
+  if (activeClueEl) activeClueEl.classList.remove("active");
+  activeClueEl = li;
+  li.classList.add("active");
+  if (doScroll) li.scrollIntoView({ behavior: "smooth", block: "nearest" });
+}
+
+function moveCaret(delta) {
+  if (activeCellIdx < 0) return;
+  const r = Math.floor(activeCellIdx / COLS), c = activeCellIdx % COLS;
+  if (activeDir === "across") {
+    let nc = c + delta;
+    while (nc >= 0 && nc < COLS && !isWhite(r, nc)) nc += delta;
+    if (nc >= 0 && nc < COLS && isWhite(r, nc)) focusCell(getCellIdx(r, nc), false);
+  } else {
+    let nr = r + delta;
+    while (nr >= 0 && nr < ROWS && !isWhite(nr, c)) nr += delta;
+    if (nr >= 0 && nr < ROWS && isWhite(nr, c)) focusCell(getCellIdx(nr, c), false);
+  }
+}
+
+function moveToNextWord(delta) {
+  const words = [];
+  for (const [num, info] of Object.entries(numberedCells).sort((a,b) => Number(a[0])-Number(b[0]))) {
+    if (info.sA) words.push({ r: info.r, c: info.c, dir: "across" });
+    if (info.sD) words.push({ r: info.r, c: info.c, dir: "down" });
+  }
+  const r = Math.floor(activeCellIdx / COLS), c = activeCellIdx % COLS;
+  let cur = -1, startR = r, startC = c;
+  if (activeDir === "across") { while (isWhite(startR, startC - 1)) startC--; }
+  else { while (isWhite(startR - 1, startC)) startR--; }
+  for (let i = 0; i < words.length; i++) {
+    if (words[i].r === startR && words[i].c === startC && words[i].dir === activeDir) { cur = i; break; }
+  }
+  const next = ((cur + delta) + words.length) % words.length;
+  activeDir = words[next].dir;
+  focusCell(getCellIdx(words[next].r, words[next].c), true);
+}
+
+function buildList(listEl, clues, dir) {
+  Object.keys(clues).map(Number).sort((a, b) => a - b).forEach(num => {
+    const { clue, len } = clues[num];
+    const li = document.createElement("li");
+    li.className = "clue-item";
+    li.dataset.num = num;
+    li.dataset.dir = dir;
+    li.innerHTML = "<span class=\"clue-num\">" + num + "</span><span class=\"clue-text\">" + clue + " <em>(" + len + ")</em></span>";
+    li.addEventListener("click", () => {
+      const info = numberedCells[num];
+      if (!info) return;
+      activeDir = dir;
+      focusCell(getCellIdx(info.r, info.c), true);
+      cellEls[getCellIdx(info.r, info.c)].scrollIntoView({ behavior: "smooth", block: "nearest" });
+    });
+    listEl.appendChild(li);
+  });
+}
+
+buildList(document.getElementById("across-list"), clueData.across, "across");
+buildList(document.getElementById("down-list"), clueData.down, "down");
+
+function checkAnswers() {
+  const correctCells = new Set();
+  const allWords = [];
+  for (const [numStr, info] of Object.entries(numberedCells)) {
+    if (info.sA) {
+      const cells = [];
+      let cc = info.c;
+      while (isWhite(info.r, cc)) { cells.push(getCellIdx(info.r, cc)); cc++; }
+      allWords.push(cells);
+    }
+    if (info.sD) {
+      const cells = [];
+      let rr = info.r;
+      while (isWhite(rr, info.c)) { cells.push(getCellIdx(rr, info.c)); rr++; }
+      allWords.push(cells);
+    }
+  }
+
+  let allCorrect = true;
+  for (const cells of allWords) {
+    const wordCorrect = cells.every(idx =>
+      (userGrid[idx] || "").toUpperCase() === SOLUTION[idx].toUpperCase()
+    );
+    if (wordCorrect) { cells.forEach(idx => correctCells.add(idx)); }
+    else { allCorrect = false; }
+  }
+
+  for (let idx = 0; idx < SOLUTION.length; idx++) {
+    if (SOLUTION[idx] === " ") continue;
+    const cell = cellEls[idx];
+    const l = cell.querySelector(".cell-letter");
+    if (!l) continue;
+    if (correctCells.has(idx)) {
+      l.className = "cell-letter";
+    } else {
+      userGrid[idx] = "";
+      l.textContent = "";
+      l.className = "cell-letter user";
+    }
+  }
+  save();
+
+  if (allCorrect) {
+    document.getElementById("victoryOverlay").classList.add("show");
+  } else {
+    const msg = document.getElementById("checkMsg");
+    msg.textContent = "Try harder old man";
+    msg.className = "check-msg";
+    setTimeout(() => { msg.textContent = ""; msg.className = "check-msg"; }, 4000);
+  }
+}
+
+document.getElementById("resetBtn").addEventListener("click", () => {
+  document.getElementById("resetMsg").style.display = "";
+});
+document.getElementById("resetCancel").addEventListener("click", () => {
+  document.getElementById("resetMsg").style.display = "none";
+});
+document.getElementById("resetConfirm").addEventListener("click", () => {
+  userGrid = Array(ROWS * COLS).fill("");
+  save();
+  for (let idx = 0; idx < SOLUTION.length; idx++) renderCell(idx);
+  document.getElementById("resetMsg").style.display = "none";
+  const msg = document.getElementById("checkMsg");
+  msg.textContent = "Progress reset.";
+  msg.className = "check-msg";
+  setTimeout(() => { msg.textContent = ""; }, 2500);
+});
+
+for (let idx = 0; idx < SOLUTION.length; idx++) {
+  if (SOLUTION[idx] !== " " && userGrid[idx]) {
+    const cell = cellEls[idx];
+    const l = cell ? cell.querySelector(".cell-letter") : null;
+    if (l) l.textContent = userGrid[idx];
+  }
+}
+</script>
+</body>
+</html>
