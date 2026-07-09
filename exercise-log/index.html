@@ -149,10 +149,25 @@
   .type-choice .t-desc{ font-size:11px; color:var(--ink-soft); margin-top:2px; }
 
   .sets-list{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px; }
-  .set-chip{ display:flex; align-items:center; gap:6px; background:white; border:1px solid var(--line); border-radius:8px; padding:6px 8px; }
-  .set-chip input{ width:44px; border:none; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:15px; }
-  .set-chip button{ border:none; background:none; color:var(--danger); font-size:14px; cursor:pointer; }
+  .set-chip{ display:flex; align-items:center; gap:2px; background:white; border:1px solid var(--line); border-radius:8px; padding:4px 4px 4px 8px; }
+  .set-chip .chip-val{ width:28px; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:15px; font-weight:600; }
+  .set-chip .chip-rm{ border:none; background:none; color:var(--danger); font-size:14px; cursor:pointer; padding:4px 6px; }
   .add-set-btn{ font-family:'IBM Plex Mono', monospace; font-size:12px; border:1px dashed var(--line); background:none; border-radius:8px; padding:6px 10px; cursor:pointer; color:var(--ink-soft); }
+
+  .stepper-btn{
+    border:1px solid var(--line); background:white; color:var(--ink); font-family:'IBM Plex Mono', monospace;
+    font-size:16px; font-weight:600; width:30px; height:30px; border-radius:7px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center; line-height:1; padding:0;
+  }
+  .stepper-btn:active{ background: var(--accent-soft); }
+  .weight-stepper{ display:flex; align-items:center; gap:12px; background:white; border:1px solid var(--line); border-radius:8px; padding:8px 12px; }
+  .weight-stepper .stepper-val{ flex:1; text-align:center; font-family:'IBM Plex Mono', monospace; font-size:20px; font-weight:600; }
+  .weight-presets{ display:flex; gap:8px; margin-bottom:8px; }
+  .preset-btn{
+    font-family:'IBM Plex Mono', monospace; font-size:13px; font-weight:600; border:1px solid var(--line);
+    background:white; border-radius:8px; padding:7px 12px; cursor:pointer; color:var(--ink);
+  }
+  .preset-btn.sel{ border-color: var(--accent); background: var(--accent-soft); color: var(--accent); }
 
   .sheet-actions{ display:flex; gap:10px; margin-top: 18px; }
   .btn{
@@ -422,11 +437,20 @@ function openAddEntrySheet(exerciseId){
   } else if(ex.type === 'weights'){
     bodyHTML = `
       <div class="field"><label>Variant / type <span style="text-transform:none;">(optional)</span></label><input type="text" id="f_variant" placeholder="e.g. Barbell, Incline"></div>
-      <div class="row2">
-        <div class="field"><label>Weight</label><input type="number" step="0.5" id="f_weight" placeholder="20"></div>
-        <div class="field"><label>Unit</label>
-          <select id="f_wunit"><option value="kg">kg</option><option value="lb">lb</option><option value="bodyweight">bodyweight</option></select>
+      <div class="field">
+        <label>Weight</label>
+        <div class="weight-presets" id="weightPresets">
+          <button type="button" class="preset-btn" data-preset="5">5 kg</button>
+          <button type="button" class="preset-btn" data-preset="7.5">7.5 kg</button>
         </div>
+        <div class="weight-stepper">
+          <button type="button" class="stepper-btn" id="weightDown">−</button>
+          <div class="stepper-val" id="weightVal">0</div>
+          <button type="button" class="stepper-btn" id="weightUp">+</button>
+        </div>
+      </div>
+      <div class="field"><label>Unit</label>
+        <select id="f_wunit"><option value="kg">kg</option><option value="lb">lb</option><option value="bodyweight">bodyweight</option></select>
       </div>
       <label style="display:block;font-family:'IBM Plex Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:0.05em; color: var(--ink-soft); margin-bottom:6px;">Sets (reps per set)</label>
       <div class="sets-list" id="setsList"></div>
@@ -453,26 +477,50 @@ function openAddEntrySheet(exerciseId){
   overlay.querySelector('#cancelBtn').onclick = () => overlay.remove();
   overlay.onclick = (e) => { if(e.target === overlay) overlay.remove(); };
 
-  let reps = [12];
+  const lastEntry = ex.entries.length ? ex.entries[ex.entries.length - 1] : null;
+  let reps = (lastEntry && lastEntry.reps && lastEntry.reps.length) ? lastEntry.reps.slice() : [15];
   function renderSets(){
     const list = overlay.querySelector('#setsList');
     if(!list) return;
     list.innerHTML = reps.map((r,i) => `
       <div class="set-chip">
-        <input type="number" min="0" value="${r}" data-idx="${i}">
-        <button data-rm="${i}" type="button">✕</button>
+        <button type="button" class="stepper-btn" data-dec="${i}">−</button>
+        <div class="chip-val">${r}</div>
+        <button type="button" class="stepper-btn" data-inc="${i}">+</button>
+        <button data-rm="${i}" type="button" class="chip-rm">✕</button>
       </div>
     `).join('');
-    list.querySelectorAll('input').forEach(inp => {
-      inp.oninput = () => { reps[+inp.dataset.idx] = +inp.value || 0; };
+    list.querySelectorAll('[data-dec]').forEach(btn => {
+      btn.onclick = () => { const i = +btn.dataset.dec; reps[i] = Math.max(0, reps[i] - 1); renderSets(); };
+    });
+    list.querySelectorAll('[data-inc]').forEach(btn => {
+      btn.onclick = () => { const i = +btn.dataset.inc; reps[i] = reps[i] + 1; renderSets(); };
     });
     list.querySelectorAll('[data-rm]').forEach(btn => {
       btn.onclick = () => { reps.splice(+btn.dataset.rm, 1); renderSets(); };
     });
   }
+
+  let weight = lastEntry ? (lastEntry.weight || 0) : 5;
+  function renderWeight(){
+    const val = overlay.querySelector('#weightVal');
+    if(!val) return;
+    val.textContent = weight;
+    overlay.querySelectorAll('#weightPresets .preset-btn').forEach(btn => {
+      btn.classList.toggle('sel', parseFloat(btn.dataset.preset) === weight);
+    });
+  }
   if(ex.type === 'weights'){
     renderSets();
-    overlay.querySelector('#addSetBtn').onclick = () => { reps.push(reps[reps.length-1] || 10); renderSets(); };
+    overlay.querySelector('#addSetBtn').onclick = () => { reps.push(reps[reps.length-1] ?? 15); renderSets(); };
+
+    renderWeight();
+    overlay.querySelector('#f_wunit').value = lastEntry ? (lastEntry.unit || 'kg') : 'kg';
+    overlay.querySelector('#weightDown').onclick = () => { weight = Math.max(0, +(weight - 0.5).toFixed(1)); renderWeight(); };
+    overlay.querySelector('#weightUp').onclick = () => { weight = +(weight + 0.5).toFixed(1); renderWeight(); };
+    overlay.querySelectorAll('#weightPresets .preset-btn').forEach(btn => {
+      btn.onclick = () => { weight = parseFloat(btn.dataset.preset); renderWeight(); };
+    });
   }
 
   overlay.querySelector('#saveEntryBtn').onclick = () => {
@@ -493,10 +541,9 @@ function openAddEntrySheet(exerciseId){
       entry.unit = overlay.querySelector('#f_unit').value;
       entry.time = time;
     } else if(ex.type === 'weights'){
-      const weight = parseFloat(overlay.querySelector('#f_weight').value);
       if(reps.length === 0){ alert('Add at least one set.'); return; }
       entry.variant = overlay.querySelector('#f_variant').value.trim();
-      entry.weight = isNaN(weight) ? 0 : weight;
+      entry.weight = weight;
       entry.unit = overlay.querySelector('#f_wunit').value;
       entry.reps = reps.slice();
     }
