@@ -14,7 +14,7 @@ redirect_from:
 
 -->
 
-Download my CV [here](/files/Gutteridge_CV_June_2026.pdf)!
+Download my CV [here](/files/Gutteridge_CV_July_2026.pdf)!
 
 {% include base_path %}
 

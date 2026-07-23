@@ -26,6 +26,8 @@ I maintain a table of ratings and useful information about every pub in Oxford [
 
 ---
 
+**9/7/2026:** [*Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription*](https://arxiv.org/abs/2502.20295) accepted to COLM (the Conference On Language Modeling) 2026 in San Francisco!
+
 **26/04/2026:** Presented my paper *"Can Graph Foundation Models Generalize Over Architecture?"* as a poster at the ICLR-26 Workshop on Geometry-grounded Representation Learning and Generative Modeling (GRaM) in Rio de Janeiro 🇧🇷. Check out the [poster](/files/GOBLIN-POSTER.pdf) and the [paper](https://arxiv.org/abs/2603.22984)!
 
 **24/04/2026:** Submitted my thesis! 🎉🎉🎉
