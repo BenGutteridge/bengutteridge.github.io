@@ -1259,24 +1259,37 @@ makeToggle("Mum's PDF start/endpoints", '🚩', true, (on) => {
 // Real daily start/end points, derived directly from REAL_TRACKS (excludes
 // any "estimated" entries with no actual GPS) so this grows automatically
 // as more days of recorded track get added, with no separate list to maintain.
+// One day's end and the next day's start are essentially the same spot, so
+// each junction gets a single marker (labelled with both) rather than two
+// near-identical ticks on top of each other - only the very first track's
+// start and the very last track's end get their own dedicated marker.
 let realEndpointsLayer = null;
 function buildRealEndpointsLayer() {
   const group = L.layerGroup();
-  REAL_TRACKS.filter(t => !t.estimated).forEach(t => {
-    const first = t.points[0], last = t.points[t.points.length - 1];
+  const real = REAL_TRACKS.filter(t => !t.estimated);
+  const icon = L.divIcon({
+    className: '',
+    html: `<div style="font-size:16px;line-height:1;">✅</div>`,
+    iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9],
+  });
+  function addMarker(latlng, lines) {
+    const marker = L.marker(latlng, { icon, pane: 'waymarkerPane' });
+    marker.bindPopup(lines.map(escapeHtml).join('<br>'));
+    group.addLayer(marker);
+  }
+  real.forEach((t, i) => {
     const startTime = t.startTime ? fmtTrackTime(t.startTime) : null;
     const endTime = t.endTime ? fmtTrackTime(t.endTime) : null;
-    const icon = L.divIcon({
-      className: '',
-      html: `<div style="font-size:16px;line-height:1;">✅</div>`,
-      iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9],
-    });
-    const startMarker = L.marker(first, { icon, pane: 'waymarkerPane' });
-    startMarker.bindPopup(`<b>${escapeHtml(t.label)}</b><div>Real start &middot; ${fmtTrackDate(t.date)}${startTime ? ' &middot; ' + startTime : ''}</div>`);
-    group.addLayer(startMarker);
-    const endMarker = L.marker(last, { icon, pane: 'waymarkerPane' });
-    endMarker.bindPopup(`<b>${escapeHtml(t.label)}</b><div>Real end &middot; ${fmtTrackDate(t.date)}${endTime ? ' &middot; ' + endTime : ''}</div>`);
-    group.addLayer(endMarker);
+    if (i === 0) {
+      addMarker(t.points[0], [t.label, `Real start · ${fmtTrackDate(t.date)}${startTime ? ' · ' + startTime : ''}`]);
+    }
+    const next = real[i + 1];
+    const lines = [t.label, `Real end · ${fmtTrackDate(t.date)}${endTime ? ' · ' + endTime : ''}`];
+    if (next) {
+      const nextStart = next.startTime ? fmtTrackTime(next.startTime) : null;
+      lines.push(`${next.label}`, `Real start · ${fmtTrackDate(next.date)}${nextStart ? ' · ' + nextStart : ''}`);
+    }
+    addMarker(t.points[t.points.length - 1], lines);
   });
   return group;
 }
@@ -1322,7 +1335,9 @@ makeToggle('Trail by distance (19 even chunks)', `<span style="width:14px;height
 // ---------- actual walked route (real GPS tracks, one entry per day recorded) ----------
 // Colors alternate down this list so consecutive days are visually distinct where
 // one day's end meets the next day's start; cycles if more days are added than colors.
-const REAL_TRACK_COLORS = ['#8b2fe0', '#e0218a', '#0e9c8c', '#c98500'];
+// Two shades of one hue, alternating by day - reads as one continuous route
+// made of daily segments, rather than a rainbow of unrelated lines.
+const REAL_TRACK_COLORS = ['#6d28d9', '#a78bfa'];
 const REAL_TRACK_TOGGLES = [];
 const realTracksMount = document.getElementById('real-tracks-mount');
 
