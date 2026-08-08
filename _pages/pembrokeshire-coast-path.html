@@ -967,11 +967,17 @@ const CAT_STYLE = {
 // ---------- map setup ----------
 const map = L.map('map', { zoomControl: true }).setView([51.9, -4.95], 10);
 
-// Dedicated pane so "our route" (real GPS tracks + their markers) always draws
-// above every other line/marker layer, regardless of the order things get
+// Dedicated pane so "our route" (real GPS tracks + their own small stop dots)
+// always draws above the trail lines, regardless of the order things get
 // toggled on in - default Leaflet z-order is otherwise just DOM/add order.
 map.createPane('realTrackPane');
 map.getPane('realTrackPane').style.zIndex = 650; // above markerPane's default 600
+
+// Waymarker icons (section-boundary flags, day-plan flags, real-endpoint
+// ticks) sit in their own pane above realTrackPane too, so no route line -
+// official or real - ever draws over the top of a marker icon.
+map.createPane('waymarkerPane');
+map.getPane('waymarkerPane').style.zIndex = 660;
 
 // Not added to the map here - the "Map tiles" toggle below applies the
 // correct on/off state once (whether that's its hardcoded default or a
@@ -1190,9 +1196,10 @@ function buildBoundaryLayer() {
   const group = L.layerGroup();
   BOUNDARIES.forEach(b => {
     const marker = L.marker([b.lat, b.lng], {
+      pane: 'waymarkerPane',
       icon: L.divIcon({
         className: '',
-        html: `<div style="font-size:20px;line-height:1;transform:translate(-2px,-18px);">🚩</div>`,
+        html: `<div style="font-size:20px;line-height:1;transform:translate(-2px,-18px);">🏁</div>`,
         iconSize: [22, 22],
         iconAnchor: [2, 20],
         popupAnchor: [4, -14],
@@ -1206,7 +1213,7 @@ function buildBoundaryLayer() {
   });
   return group;
 }
-makeToggle('Official section start/end points (15)', '🚩', false, (on) => {
+makeToggle('Official section start/end points (15)', '🏁', false, (on) => {
   if (on) {
     if (!boundaryLayer) boundaryLayer = buildBoundaryLayer();
     boundaryLayer.addTo(map);
@@ -1223,9 +1230,10 @@ function buildDayStopLayer() {
   const group = L.layerGroup();
   DAY_STOPS.forEach(b => {
     const marker = L.marker([b.lat, b.lng], {
+      pane: 'waymarkerPane',
       icon: L.divIcon({
         className: '',
-        html: `<div style="font-size:18px;line-height:1;transform:translate(10px,-8px);">🏁</div>`,
+        html: `<div style="font-size:18px;line-height:1;transform:translate(10px,-8px);">🚩</div>`,
         iconSize: [20, 20],
         iconAnchor: [10, 10],
         popupAnchor: [0, -10],
@@ -1239,7 +1247,7 @@ function buildDayStopLayer() {
   });
   return group;
 }
-makeToggle("Mum's PDF start/endpoints", '🏁', true, (on) => {
+makeToggle("Mum's PDF start/endpoints", '🚩', true, (on) => {
   if (on) {
     if (!dayStopLayer) dayStopLayer = buildDayStopLayer();
     dayStopLayer.addTo(map);
@@ -1263,16 +1271,16 @@ function buildRealEndpointsLayer() {
       html: `<div style="font-size:16px;line-height:1;">✅</div>`,
       iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9],
     });
-    const startMarker = L.marker(first, { icon, pane: 'realTrackPane' });
+    const startMarker = L.marker(first, { icon, pane: 'waymarkerPane' });
     startMarker.bindPopup(`<b>${escapeHtml(t.label)}</b><div>Real start &middot; ${fmtTrackDate(t.date)}${startTime ? ' &middot; ' + startTime : ''}</div>`);
     group.addLayer(startMarker);
-    const endMarker = L.marker(last, { icon, pane: 'realTrackPane' });
+    const endMarker = L.marker(last, { icon, pane: 'waymarkerPane' });
     endMarker.bindPopup(`<b>${escapeHtml(t.label)}</b><div>Real end &middot; ${fmtTrackDate(t.date)}${endTime ? ' &middot; ' + endTime : ''}</div>`);
     group.addLayer(endMarker);
   });
   return group;
 }
-makeToggle('Real daily endpoints (from GPS)', '✅', false, (on) => {
+makeToggle('Real daily endpoints (from GPS)', '✅', true, (on) => {
   if (on) {
     if (!realEndpointsLayer) realEndpointsLayer = buildRealEndpointsLayer();
     realEndpointsLayer.addTo(map);
