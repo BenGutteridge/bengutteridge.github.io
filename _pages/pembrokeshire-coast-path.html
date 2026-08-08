@@ -967,10 +967,19 @@ const CAT_STYLE = {
 // ---------- map setup ----------
 const map = L.map('map', { zoomControl: true }).setView([51.9, -4.95], 10);
 
+// Dedicated pane so "our route" (real GPS tracks + their markers) always draws
+// above every other line/marker layer, regardless of the order things get
+// toggled on in - default Leaflet z-order is otherwise just DOM/add order.
+map.createPane('realTrackPane');
+map.getPane('realTrackPane').style.zIndex = 650; // above markerPane's default 600
+
+// Not added to the map here - the "Map tiles" toggle below applies the
+// correct on/off state once (whether that's its hardcoded default or a
+// value restored from a previous visit), so there's one source of truth.
 const tileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
   maxZoom: 18,
   attribution: '&copy; OpenStreetMap contributors — tiles need an internet connection',
-}).addTo(map);
+});
 
 // #map is sized via absolute positioning against .map-wrap, but some browsers
 // finish that layout pass a tick after Leaflet reads the container size, so
@@ -981,6 +990,7 @@ setTimeout(() => map.invalidateSize(), 300);
 
 // ---------- trail lines ----------
 const trailLayers = {}; // id -> L.layer
+// Not added to the map here - see the "Trail line" toggle below.
 const trailGroup = L.geoJSON(TRAIL, {
   style: () => ({ color: getTrailColor(), weight: 4, opacity: 0.85 }),
   onEachFeature: (feature, layer) => {
@@ -992,7 +1002,7 @@ const trailGroup = L.geoJSON(TRAIL, {
       layer.bindTooltip(feature.properties.name || ('Section ' + id), { sticky: true });
     }
   }
-}).addTo(map);
+});
 
 function getTrailColor() {
   const dark = matchMedia('(prefers-color-scheme: dark)').matches;
@@ -1028,6 +1038,20 @@ document.getElementById('fit-btn').onclick = () => {
 // "hide all" can drive them without the caller needing to know how each one
 // is implemented (checkbox pair, single checkbox, layer add/remove, etc).
 const ALL_TOGGLES = [];
+
+// ---------- remember the user's toggle choices across visits ----------
+const TOGGLE_STORAGE_KEY = 'pembsCoastMap.toggles.v1';
+let SAVED_TOGGLE_STATE = {};
+try { SAVED_TOGGLE_STATE = JSON.parse(localStorage.getItem(TOGGLE_STORAGE_KEY)) || {}; } catch (e) { SAVED_TOGGLE_STATE = {}; }
+function persistToggleState() {
+  const state = {};
+  ALL_TOGGLES.forEach(t => { if (t.key) state[t.key] = t.isOn(); });
+  try { localStorage.setItem(TOGGLE_STORAGE_KEY, JSON.stringify(state)); } catch (e) { /* storage unavailable/full - ignore */ }
+}
+// A saved value for a key wins over whatever hardcoded default was passed in.
+function resolveInitial(key, fallback) {
+  return SAVED_TOGGLE_STATE.hasOwnProperty(key) ? !!SAVED_TOGGLE_STATE[key] : fallback;
+}
 
 // ---------- POI markers ----------
 const activeCats = new Set(); // off by default; only "Sections" & base layers are on to start
@@ -1071,17 +1095,18 @@ buildPoiLayer();
 const legendMount = document.getElementById('legend-mount');
 const legendBox = document.getElementById('legend');
 
-function makeLegendRow(cat) {
+function makeLegendRow(cat, initiallyOn) {
   const st = CAT_STYLE[cat];
   const row = document.createElement('label');
-  row.className = 'toggle-row off'; // POI categories start OFF by default
-  row.innerHTML = `<input type="checkbox"><span class="dot" style="background:${st.color}">${st.icon}</span><span>${cat}</span>`;
+  row.className = 'toggle-row' + (initiallyOn ? '' : ' off');
+  row.innerHTML = `<input type="checkbox" ${initiallyOn ? 'checked' : ''}><span class="dot" style="background:${st.color}">${st.icon}</span><span>${cat}</span>`;
   const cb = row.querySelector('input');
   cb.onchange = () => {
     if (cb.checked) { activeCats.add(cat); row.classList.remove('off'); }
     else { activeCats.delete(cat); row.classList.add('off'); }
     buildPoiLayer();
     syncCheckboxPair(cat, cb.checked);
+    persistToggleState();
   };
   row.dataset.cat = cat;
   return row;
@@ -1098,29 +1123,38 @@ function syncCheckboxPair(cat, checked) {
 }
 
 Object.keys(CAT_STYLE).filter(c => c !== 'Other').forEach(cat => {
-  legendBox.appendChild(makeLegendRow(cat));
-  legendMount.appendChild(makeLegendRow(cat));
+  const key = `poi:${cat}`;
+  const initiallyOn = resolveInitial(key, false); // off by default unless a saved choice says otherwise
+  if (initiallyOn) activeCats.add(cat);
+  legendBox.appendChild(makeLegendRow(cat, initiallyOn));
+  legendMount.appendChild(makeLegendRow(cat, initiallyOn));
   ALL_TOGGLES.push({
+    key,
     isOn: () => activeCats.has(cat),
     set: (on) => {
       if (on === activeCats.has(cat)) return;
       if (on) activeCats.add(cat); else activeCats.delete(cat);
       buildPoiLayer();
       syncCheckboxPair(cat, on);
+      persistToggleState();
     }
   });
 });
+buildPoiLayer(); // re-apply now that any saved-on categories have been added to activeCats
 
 // ---------- base layer toggles: trail line, map tiles, section boundary points ----------
 const baseLayersMount = document.getElementById('base-layers-mount');
 
-function makeToggle(labelText, dotHtml, initiallyOn, onToggle, mount) {
+function makeToggle(labelText, dotHtml, defaultOn, onToggle, mount, key) {
+  key = key || labelText;
+  const initiallyOn = resolveInitial(key, defaultOn);
   const row = document.createElement('label');
   row.className = 'toggle-row' + (initiallyOn ? '' : ' off');
   row.innerHTML = `<input type="checkbox" ${initiallyOn ? 'checked' : ''}><span class="dot" style="background:transparent;color:inherit;">${dotHtml}</span><span>${labelText}</span>`;
   const cb = row.querySelector('input');
   let state = initiallyOn;
   const control = {
+    key,
     isOn: () => state,
     set: (on) => {
       if (on === state) return;
@@ -1128,11 +1162,18 @@ function makeToggle(labelText, dotHtml, initiallyOn, onToggle, mount) {
       cb.checked = on;
       row.classList.toggle('off', !on);
       onToggle(on);
+      persistToggleState();
     }
   };
-  cb.onchange = (e) => { state = e.target.checked; row.classList.toggle('off', !state); onToggle(state); };
+  cb.onchange = (e) => {
+    state = e.target.checked;
+    row.classList.toggle('off', !state);
+    onToggle(state);
+    persistToggleState();
+  };
   ALL_TOGGLES.push(control);
   (mount || baseLayersMount).appendChild(row);
+  onToggle(initiallyOn); // sync actual layer state to the resolved initial checkbox state, on or off
   return control;
 }
 
@@ -1198,7 +1239,7 @@ function buildDayStopLayer() {
   });
   return group;
 }
-makeToggle("Mum's PDF start/endpoints", '🏁', false, (on) => {
+makeToggle("Mum's PDF start/endpoints", '🏁', true, (on) => {
   if (on) {
     if (!dayStopLayer) dayStopLayer = buildDayStopLayer();
     dayStopLayer.addTo(map);
@@ -1222,10 +1263,10 @@ function buildRealEndpointsLayer() {
       html: `<div style="font-size:16px;line-height:1;">✅</div>`,
       iconSize: [18, 18], iconAnchor: [9, 9], popupAnchor: [0, -9],
     });
-    const startMarker = L.marker(first, { icon });
+    const startMarker = L.marker(first, { icon, pane: 'realTrackPane' });
     startMarker.bindPopup(`<b>${escapeHtml(t.label)}</b><div>Real start &middot; ${fmtTrackDate(t.date)}${startTime ? ' &middot; ' + startTime : ''}</div>`);
     group.addLayer(startMarker);
-    const endMarker = L.marker(last, { icon });
+    const endMarker = L.marker(last, { icon, pane: 'realTrackPane' });
     endMarker.bindPopup(`<b>${escapeHtml(t.label)}</b><div>Real end &middot; ${fmtTrackDate(t.date)}${endTime ? ' &middot; ' + endTime : ''}</div>`);
     group.addLayer(endMarker);
   });
@@ -1287,15 +1328,16 @@ REAL_TRACKS.forEach((track, i) => {
 
   function buildTrackLayer() {
     const group = L.layerGroup();
-    const lineStyle = { color, weight: 5, opacity: 0.9 };
-    if (track.estimated) lineStyle.dashArray = '2,10'; // dotted: no GPS, best-guess route
+    const lineStyle = { color, weight: 5, opacity: 0.9, pane: 'realTrackPane' };
     const line = L.polyline(track.points, lineStyle);
     const kind = track.estimated ? 'best estimate — no GPS recorded' : 'actual GPS route';
     line.bindTooltip(`${escapeHtml(track.label)} — ${fmtTrackDate(track.date)} (${kind})`, { sticky: true });
     group.addLayer(line);
     (track.waypoints || []).forEach(w => {
+      // radius+weight sized so the marker's total width roughly matches the
+      // line's own width, rather than a big blob sticking out either side of it.
       const marker = L.circleMarker([w.lat, w.lng], {
-        radius: 7, color: '#fff', weight: 2, fillColor: color, fillOpacity: 1,
+        radius: 3, color: '#fff', weight: 1, fillColor: color, fillOpacity: 1, pane: 'realTrackPane',
       });
       marker.bindPopup(
         `<b>${escapeHtml(w.name)}</b>` +
@@ -1308,13 +1350,11 @@ REAL_TRACKS.forEach((track, i) => {
 
   const distLabel = track.estimated ? `${track.distanceMi} mi, best estimate` : `${track.distanceMi} mi actual`;
   const label = `${fmtTrackDate(track.date)} — ${escapeHtml(track.label)} (${distLabel})`;
-  const swatch = track.estimated
-    ? `<span style="width:14px;height:0;border-top:3px dotted ${color};display:inline-block;"></span>`
-    : `<span style="width:14px;height:3px;background:${color};border-radius:2px;"></span>`;
+  const swatch = `<span style="width:14px;height:3px;background:${color};border-radius:2px;"></span>`;
   const control = makeToggle(label, swatch, true, (on) => {
     if (on) { if (!layer) layer = buildTrackLayer(); layer.addTo(map); }
     else if (layer) { map.removeLayer(layer); }
-  }, realTracksMount);
+  }, realTracksMount, `track:${track.date}`);
   REAL_TRACK_TOGGLES.push(control);
 });
 
