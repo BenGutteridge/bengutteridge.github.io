@@ -1560,9 +1560,12 @@ const OFFICIAL_TOTAL_MI = OFFICIAL_TOTAL_KM / 1.609344;
 function updateProgressBar() {
   const pct = Math.min(100, (mostRecentEndKm / OFFICIAL_TOTAL_KM) * 100);
   document.getElementById('progress-bar-fill').style.width = pct.toFixed(1) + '%';
+  const remainingKm = OFFICIAL_TOTAL_KM - mostRecentEndKm;
+  const remainingMi = remainingKm / 1.609344;
   document.getElementById('progress-bar-label').textContent =
     `${(mostRecentEndKm / 1.609344).toFixed(1)}/${OFFICIAL_TOTAL_MI.toFixed(0)} mi ` +
-    `(${mostRecentEndKm.toFixed(1)}/${OFFICIAL_TOTAL_KM} km) · ${pct.toFixed(0)}%`;
+    `(${Math.round(mostRecentEndKm)}/${Math.round(OFFICIAL_TOTAL_KM)} km) · ${pct.toFixed(0)}% · ` +
+    `${remainingMi.toFixed(1)} mi (${Math.round(remainingKm)} km) remaining`;
 }
 updateProgressBar();
 
@@ -1670,6 +1673,76 @@ const lastLegIdxOfSection = {};
 SECTIONS.forEach(s => {
   const legs = legsInSection(s.id);
   lastLegIdxOfSection[s.id] = legs.length ? legs[legs.length - 1].idx : -1;
+});
+
+// Approximate on-map markers for every named LEG_LIST waypoint (e.g.
+// "Aber Mawr", "Penbwchdy") - these have no surveyed coordinates of their
+// own, only an official mileage-along-the-trail figure. Position is found by
+// interpolating along OFFICIAL_PATH between that leg's own section's two
+// boundary points (BOUNDARIES, already GPS-verified), scaled by how far
+// through the section's own official mileage the leg falls - the same
+// anchor-to-real-GPS-vertex approach already used for the day-length
+// trail-line chunking, rather than a single trail-wide proportional scale.
+// Approximate by construction: flag clearly in the popup, don't present as
+// exact.
+function pointAtCumKm(km) {
+  const path = OFFICIAL_PATH;
+  if (km <= path[0].cumKm) return path[0];
+  if (km >= path[path.length - 1].cumKm) return path[path.length - 1];
+  let lo = 0, hi = path.length - 1;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (path[mid].cumKm <= km) lo = mid; else hi = mid;
+  }
+  const a = path[lo], b = path[hi];
+  const span = b.cumKm - a.cumKm;
+  const t = span > 0 ? (km - a.cumKm) / span : 0;
+  return { lat: a.lat + (b.lat - a.lat) * t, lon: a.lon + (b.lon - a.lon) * t };
+}
+
+const sectionBoundaryCumKm = {};
+BOUNDARIES.forEach(b => {
+  const km = nearestOnPath(b.lat, b.lng).cumKm;
+  if (b.startsSection) (sectionBoundaryCumKm[b.startsSection] = sectionBoundaryCumKm[b.startsSection] || {}).startKm = km;
+  if (b.endsSection) (sectionBoundaryCumKm[b.endsSection] = sectionBoundaryCumKm[b.endsSection] || {}).endKm = km;
+});
+
+const LEG_MARKERS = [];
+SECTIONS.forEach(s => {
+  const legs = legsInSection(s.id);
+  const anchors = sectionBoundaryCumKm[s.id];
+  const totalMi = legs.reduce((a, l) => a + l.mi, 0);
+  if (!anchors || anchors.startKm === undefined || anchors.endKm === undefined || totalMi === 0) return;
+  let cumMi = 0;
+  legs.forEach(l => {
+    cumMi += l.mi;
+    const targetKm = anchors.startKm + (cumMi / totalMi) * (anchors.endKm - anchors.startKm);
+    const pt = pointAtCumKm(targetKm);
+    LEG_MARKERS.push({ name: l.name, lat: pt.lat, lng: pt.lon });
+  });
+});
+
+let legMarkerLayer = null;
+function buildLegMarkerLayer() {
+  const group = L.layerGroup();
+  LEG_MARKERS.forEach(m => {
+    const marker = L.circleMarker([m.lat, m.lng], {
+      pane: 'waymarkerPane',
+      radius: 5, color: '#fff', weight: 1.5, fillColor: '#e8a33d', fillOpacity: 1,
+    });
+    marker.bindTooltip(escapeHtml(m.name), { direction: 'top', offset: [0, -6] });
+    marker.bindPopup(`<b>${escapeHtml(m.name)}</b><div class="poi-gr">Approx. position - interpolated along the trail from official leg mileage, not a surveyed point</div>`);
+    group.addLayer(marker);
+  });
+  return group;
+}
+makeToggle('Subsection waypoints (approx.)', '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#e8a33d;border:1.5px solid #fff;"></span>', true, (on) => {
+  if (on) {
+    if (!legMarkerLayer) legMarkerLayer = buildLegMarkerLayer();
+    legMarkerLayer.addTo(map);
+  } else if (legMarkerLayer) {
+    map.removeLayer(legMarkerLayer);
+  }
 });
 
 // Cumulative km "from now" (from officialProgressIdx onward) - the single
