@@ -1522,7 +1522,7 @@ REAL_TRACKS.forEach((track, i) => {
     return group;
   }
 
-  const distLabel = track.estimated ? `${track.distanceMi} mi, best estimate` : `${track.distanceMi} mi actual`;
+  const distLabel = track.estimated ? `${track.distanceMi} mi, best estimate` : `${track.distanceMi} mi GPS-measured`;
   const label = `${fmtTrackDate(track.date)} — ${escapeHtml(track.label)} (${distLabel})`;
   const swatch = `<span style="width:14px;height:3px;background:${color};border-radius:2px;"></span>`;
   const control = makeToggle(label, swatch, true, (on) => {
