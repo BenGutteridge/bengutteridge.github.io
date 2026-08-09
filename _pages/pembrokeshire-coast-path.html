@@ -1496,6 +1496,32 @@ function fmtTrackTime(iso) {
   return new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 }
 
+// Each day's sidebar distance figure is the official LEG_LIST sum between its
+// start/end place names, not the GPS-recorded track length - every day's
+// stop is always a real official subsection ending, so there's no reason to
+// let GPS noise/wiggle (which reliably runs 7-15% over the official mileage)
+// into the one number people actually use to track progress. track.label
+// ("X to Y") uses a few informal place names that don't exactly match their
+// LEG_LIST entry (e.g. "Ceibwr Bay" vs the leg table's "Ceibwr") - aliased
+// here the same way DAY_STOP_TO_LEG_NAME does it further down.
+const TRACK_LABEL_ALIAS_TO_LEG_NAME = {
+  'Ceibwr Bay': 'Ceibwr',
+  'Aberfforest': 'Aber Fforest',
+  'Goodwick': 'Goodwick Parrog',
+};
+function officialMiBetween(fromName, toName) {
+  const to = TRACK_LABEL_ALIAS_TO_LEG_NAME[toName] || toName;
+  const toIdx = LEG_LIST.findIndex(l => l.name === to);
+  if (toIdx === -1) return null;
+  let fromIdx = -1; // St Dogmaels is the trail start, never a leg's "to" value
+  if (fromName !== 'St Dogmaels') {
+    const from = TRACK_LABEL_ALIAS_TO_LEG_NAME[fromName] || fromName;
+    fromIdx = LEG_LIST.findIndex(l => l.name === from);
+    if (fromIdx === -1) return null;
+  }
+  return LEG_LIST.slice(fromIdx + 1, toIdx + 1).reduce((a, l) => a + l.mi, 0);
+}
+
 REAL_TRACKS.forEach((track, i) => {
   const color = REAL_TRACK_COLORS[i % REAL_TRACK_COLORS.length];
   let layer = null;
@@ -1522,7 +1548,11 @@ REAL_TRACKS.forEach((track, i) => {
     return group;
   }
 
-  const distLabel = track.estimated ? `${track.distanceMi} mi, best estimate` : `${track.distanceMi} mi GPS-measured`;
+  const [fromName, toName] = track.label.split(' to ');
+  const officialMi = officialMiBetween(fromName, toName);
+  const distLabel = officialMi !== null
+    ? `${officialMi.toFixed(1)} mi`
+    : `${track.distanceMi} mi GPS-measured`; // fallback if a label doesn't match LEG_LIST
   const label = `${fmtTrackDate(track.date)} — ${escapeHtml(track.label)} (${distLabel})`;
   const swatch = `<span style="width:14px;height:3px;background:${color};border-radius:2px;"></span>`;
   const control = makeToggle(label, swatch, true, (on) => {
