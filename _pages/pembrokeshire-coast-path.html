@@ -1566,21 +1566,16 @@ document.getElementById('show-all-tracks-btn').onclick = () => REAL_TRACK_TOGGLE
 document.getElementById('hide-all-tracks-btn').onclick = () => REAL_TRACK_TOGGLES.forEach(t => t.set(false));
 
 // ---------- progress tracking ----------
-// "Distance done" (progress bar) and "today so far" are both measured on the
-// official per-leg mileage scale (LEG_LIST/SECTIONS), not raw GPS/trail-line
-// distance - GPS-measured daily distances reliably run ~7-15% over the
-// official mileage (real coastline wiggle, detours, minor GPS noise), and
-// since every check-in point (OFFICIAL_PROGRESS_LEG_NAME) is always an actual
-// named subsection ending anyway, there's no need for GPS distance here at
-// all. Live GPS is still used to place the current position on the trail
-// (nearestOnPath), just converted onto the official-mileage scale via
-// officialCumKmAt() before being compared to anything - see below, near
-// sectionBoundaryCumKm. The "next few subsections" list further down uses
-// the md files' official leg distances directly, same principle.
-
-// DAY_STOPS positioned on OFFICIAL_PATH's raw geometry scale for now; converted
-// to the official-mileage scale further down once officialCumKmAt() exists.
-const dayStopsWithKm = DAY_STOPS.map(d => ({ ...d, cumKm: nearestOnPath(d.lat, d.lng).cumKm }));
+// GPS is used as little as possible here, and only ever for a small residual
+// distance, never a whole-section proportional guess. "Distance done"
+// (progress bar) and every fixed checkpoint (DAY_STOPS above) are the exact
+// LEG_LIST sum to a named leg - no GPS at all, since those points are always
+// real official subsection endings. "Today so far" and "distance to X" DO
+// need a live GPS fix's position, which has no official-mileage figure of
+// its own (it's mid-leg) - estimateOfficialCumKm() (see below, near
+// LEG_MARKERS) handles that by finding the most recently passed leg boundary
+// and adding just the small GPS-measured residual from there, rather than
+// scaling GPS position across an entire multi-leg section.
 
 // Builds the "next few subsections beyond the day-stop" list using ONLY the
 // official leg distances from the md files (LEG_LIST) - no GPS involved, per
@@ -1598,6 +1593,18 @@ const DAY_STOP_TO_LEG_NAME = {
   'Milford Haven': 'Venn Farm (through Milford Haven)',
   'Angle': 'Angle Village',
 };
+
+// Every DAY_STOP is itself always a real official subsection ending, so its
+// cumulative distance is the exact LEG_LIST sum to that leg - no GPS, no
+// interpolation, same aliasing DAY_STOP_TO_LEG_NAME already does below.
+const dayStopsWithKm = DAY_STOPS.map(d => {
+  if (d.label === 'St Dogmaels') return { ...d, cumKm: 0 };
+  const legName = DAY_STOP_TO_LEG_NAME[d.label] || d.label;
+  const idx = LEG_LIST.findIndex(l => l.name === legName);
+  const cumKm = idx === -1 ? null : LEG_LIST.slice(0, idx + 1).reduce((a, l) => a + l.mi, 0) * 1.609344;
+  return { ...d, cumKm };
+});
+
 function legsForwardFrom(placeName, count) {
   if (placeName === 'St Dogmaels') {
     // the trail start is never a leg's "to" value - the "next" legs are simply the first ones
@@ -1633,25 +1640,31 @@ function updateFindMePanel(curLat, curLon) {
     return;
   }
 
-  // Clamped at 0: right at today's start, the official-mileage interpolation
-  // can land a few hundred metres either side of the exact checkpoint, which
-  // would otherwise show as a confusing small negative distance.
-  const todaySoFar = Math.max(0, officialCumKmAt(cumKm) - officialProgressKm);
-  const nextStop = dayStopsWithKm.find(d => d.cumKm > cumKm);
+  // currentOfficialKm is on the same official-mileage scale as officialProgressKm
+  // and dayStopsWithKm - everything below is a plain subtraction on that one
+  // scale, with GPS only ever supplying the small residual inside
+  // estimateOfficialCumKm() itself.
+  const currentOfficialKm = estimateOfficialCumKm(cumKm);
+  // Clamped at 0: right at today's start, the small GPS residual can land
+  // either side of the exact checkpoint, which would otherwise show as a
+  // confusing small negative distance.
+  const todaySoFar = Math.max(0, currentOfficialKm - officialProgressKm);
+  const nextStop = dayStopsWithKm.find(d => d.cumKm !== null && d.cumKm > currentOfficialKm);
   let html = closeBtn + `<h4>Progress from today's start</h4>`;
   html += `<div class="row"><span class="label">Today so far</span><span class="val">${todaySoFar.toFixed(1)} km</span></div>`;
 
   if (nextStop) {
-    html += `<div class="row"><span class="label">To ${escapeHtml(nextStop.label)} (Mum's PDF)</span><span class="val">${(nextStop.cumKm - cumKm).toFixed(1)} km</span></div>`;
+    const toNext = nextStop.cumKm - currentOfficialKm;
+    html += `<div class="row"><span class="label">To ${escapeHtml(nextStop.label)} (Mum's PDF)</span><span class="val">${toNext.toFixed(1)} km</span></div>`;
     const further = legsForwardFrom(nextStop.label, 4);
     if (further.length) {
       html += `<h4 style="margin-top:6px;">Beyond that (official mileage)</h4>`;
       further.forEach(f => {
-        html += `<div class="row"><span class="label">To ${escapeHtml(f.name)}</span><span class="val">${((nextStop.cumKm - cumKm) + f.km).toFixed(1)} km</span></div>`;
+        html += `<div class="row"><span class="label">To ${escapeHtml(f.name)}</span><span class="val">${(toNext + f.km).toFixed(1)} km</span></div>`;
       });
     }
   } else {
-    html += `<div class="row"><span class="label">Remaining</span><span class="val">${(OFFICIAL_TOTAL_KM - officialCumKmAt(cumKm)).toFixed(1)} km to Amroth</span></div>`;
+    html += `<div class="row"><span class="label">Remaining</span><span class="val">${(OFFICIAL_TOTAL_KM - currentOfficialKm).toFixed(1)} km to Amroth</span></div>`;
   }
   html += `<div style="margin-top:6px;color:var(--muted);font-size:11px;">±${distKm.toFixed(2)} km off the official line</div>`;
   panel.innerHTML = html;
@@ -1723,20 +1736,31 @@ BOUNDARIES.forEach(b => {
   if (b.endsSection) (sectionBoundaryCumKm[b.endsSection] = sectionBoundaryCumKm[b.endsSection] || {}).endKm = km;
 });
 
+// Each entry also carries rawKm (its position on OFFICIAL_PATH's raw
+// geometry scale) and officialKm (its EXACT cumulative official mileage, in
+// km) - together these are the anchor points estimateOfficialCumKm() uses
+// further down to place a live GPS fix on the official scale.
 const LEG_MARKERS = [];
-SECTIONS.forEach(s => {
-  const legs = legsInSection(s.id);
-  const anchors = sectionBoundaryCumKm[s.id];
-  const totalMi = legs.reduce((a, l) => a + l.mi, 0);
-  if (!anchors || anchors.startKm === undefined || anchors.endKm === undefined || totalMi === 0) return;
-  let cumMi = 0;
-  legs.forEach(l => {
-    cumMi += l.mi;
-    const targetKm = anchors.startKm + (cumMi / totalMi) * (anchors.endKm - anchors.startKm);
-    const pt = pointAtCumKm(targetKm);
-    LEG_MARKERS.push({ name: l.name, lat: pt.lat, lng: pt.lon });
+{
+  let officialCum = 0;
+  SECTIONS.forEach(s => {
+    const legs = legsInSection(s.id);
+    const anchors = sectionBoundaryCumKm[s.id];
+    const totalMi = legs.reduce((a, l) => a + l.mi, 0);
+    if (!anchors || anchors.startKm === undefined || anchors.endKm === undefined || totalMi === 0) {
+      officialCum += totalMi * 1.609344;
+      return;
+    }
+    let cumMi = 0;
+    legs.forEach(l => {
+      cumMi += l.mi;
+      officialCum += l.mi * 1.609344;
+      const rawKm = anchors.startKm + (cumMi / totalMi) * (anchors.endKm - anchors.startKm);
+      const pt = pointAtCumKm(rawKm);
+      LEG_MARKERS.push({ name: l.name, lat: pt.lat, lng: pt.lon, rawKm, officialKm: officialCum });
+    });
   });
-});
+}
 
 let legMarkerLayer = null;
 function buildLegMarkerLayer() {
@@ -1761,33 +1785,20 @@ makeToggle('Subsection waypoints (approx.)', '<span style="display:inline-block;
   }
 });
 
-// Official-mileage-equivalent cumulative km for any raw OFFICIAL_PATH cumKm
-// value (e.g. from nearestOnPath on a live GPS fix) - converts "where on the
-// digitized trail geometry" into "how far along the official per-leg
-// mileage", using the same per-section anchor-to-real-GPS-boundary scaling as
-// LEG_MARKERS above, just inverted. This keeps "distance done"/"today so far"
-// on the same official-mileage scale as the progress bar total and the
-// sections list, rather than mixing in raw trail-line or GPS-track distance.
-const officialKmBeforeSection = {};
-{ let cum = 0; SECTIONS.forEach(s => { officialKmBeforeSection[s.id] = cum; cum += s.miles * 1.609344; }); }
-
-function officialCumKmAt(rawCumKm) {
-  for (const s of SECTIONS) {
-    const anchors = sectionBoundaryCumKm[s.id];
-    if (!anchors || anchors.startKm === undefined || anchors.endKm === undefined) continue;
-    const isLast = s.id === SECTIONS[SECTIONS.length - 1].id;
-    if (rawCumKm <= anchors.endKm || isLast) {
-      const span = anchors.endKm - anchors.startKm;
-      const frac = span > 0 ? Math.max(0, Math.min(1, (rawCumKm - anchors.startKm) / span)) : 0;
-      return officialKmBeforeSection[s.id] + frac * (s.miles * 1.609344);
-    }
+// Estimates a live GPS fix's position on the official-mileage scale: finds
+// the most recently passed leg boundary (by rawKm, LEG_MARKERS is in true
+// trail order) and adds the GPS-measured residual from there to the fix
+// itself. That residual is at most one subsection's worth of GPS distance -
+// small and roughly accurate - rather than proportionally scaling GPS
+// position across an entire multi-leg section.
+function estimateOfficialCumKm(rawCumKm) {
+  let prev = { rawKm: 0, officialKm: 0 };
+  for (const m of LEG_MARKERS) {
+    if (m.rawKm > rawCumKm) break;
+    prev = m;
   }
-  return OFFICIAL_TOTAL_KM;
+  return prev.officialKm + Math.max(0, rawCumKm - prev.rawKm);
 }
-
-// DAY_STOPS' cumKm was set on the raw geometry scale further up (before this
-// conversion existed) - bring it onto the official-mileage scale now.
-dayStopsWithKm.forEach(d => { d.cumKm = officialCumKmAt(d.cumKm); });
 
 // "Distance done" for the progress bar: the exact sum of every official leg
 // up to and including OFFICIAL_PROGRESS_LEG_NAME - no GPS or interpolation
