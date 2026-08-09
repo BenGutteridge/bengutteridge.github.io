@@ -1548,8 +1548,9 @@ document.getElementById('hide-all-tracks-btn').onclick = () => REAL_TRACK_TOGGLE
 // Most recently recorded day (by date) determines both the progress bar and
 // "today's start" for the Find-me panel - whether that day is the "estimated"
 // one or real GPS doesn't matter here, both represent real progress made.
+// mostRecentEndKm is the END of that recorded day - i.e. the last green tick
+// - which is also where "today" (not yet recorded) actually starts from.
 const mostRecentTrack = REAL_TRACKS.reduce((a, b) => (a.date > b.date ? a : b));
-const mostRecentStartKm = nearestOnPath(mostRecentTrack.points[0][0], mostRecentTrack.points[0][1]).cumKm;
 const mostRecentEndPt = mostRecentTrack.points[mostRecentTrack.points.length - 1];
 const mostRecentEndKm = nearestOnPath(mostRecentEndPt[0], mostRecentEndPt[1]).cumKm;
 
@@ -1620,7 +1621,7 @@ function updateFindMePanel(curLat, curLon) {
     return;
   }
 
-  const todaySoFar = cumKm - mostRecentStartKm;
+  const todaySoFar = cumKm - mostRecentEndKm;
   const nextStop = dayStopsWithKm.find(d => d.cumKm > cumKm);
   let html = closeBtn + `<h4>Progress from today's start</h4>`;
   html += `<div class="row"><span class="label">Today so far</span><span class="val">${todaySoFar.toFixed(1)} km</span></div>`;
