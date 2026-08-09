@@ -776,7 +776,16 @@ header .sub { color: var(--text-secondary); font-size: 12px; }
 #find-me-panel .row .label { color: var(--text-secondary); }
 #find-me-panel .row .val { font-variant-numeric: tabular-nums; font-weight: 600; }
 #find-me-panel h4 { margin: 0 0 4px; font-size: 12px; color: var(--text-primary); }
-#find-me-panel .close-x { float: right; cursor: pointer; color: var(--muted); }
+#find-me-panel .close-x {
+  float: right;
+  cursor: pointer;
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  margin: -2px -2px 0 6px;
+}
+#find-me-panel .close-x:hover { color: var(--text-primary); }
 #app {
   flex: 1;
   display: flex;
@@ -1564,15 +1573,17 @@ function updateFindMePanel(curLat, curLon) {
   const panel = document.getElementById('find-me-panel');
   const { distKm, cumKm } = nearestOnPath(curLat, curLon);
 
+  const closeBtn = `<span class="close-x" onclick="document.getElementById('find-me-panel').classList.remove('show')">&times;</span>`;
+
   if (distKm > 3) {
-    panel.innerHTML = `<h4>Not on the trail</h4><p style="margin:2px 0;">Nearest point on the official path is ${distKm.toFixed(1)} km away — too far to be a GPS glitch on the trail itself, so skipping the distance breakdown.</p>`;
+    panel.innerHTML = `${closeBtn}<h4>Not on the trail</h4><p style="margin:2px 0;">Nearest point on the official path is ${distKm.toFixed(1)} km away — too far to be a GPS glitch on the trail itself, so skipping the distance breakdown.</p>`;
     panel.classList.add('show');
     return;
   }
 
   const todaySoFar = cumKm - mostRecentStartKm;
   const nextStop = dayStopsWithKm.find(d => d.cumKm > cumKm);
-  let html = `<h4>Progress from today's start</h4>`;
+  let html = closeBtn + `<h4>Progress from today's start</h4>`;
   html += `<div class="row"><span class="label">Today so far</span><span class="val">${todaySoFar.toFixed(1)} km</span></div>`;
 
   if (nextStop) {
