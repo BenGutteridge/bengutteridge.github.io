@@ -1736,7 +1736,7 @@ function buildLegMarkerLayer() {
   });
   return group;
 }
-makeToggle('Subsection waypoints (approx.)', '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#e8a33d;border:1.5px solid #fff;"></span>', true, (on) => {
+makeToggle('Subsection waypoints (approx.)', '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#e8a33d;border:1.5px solid #fff;"></span>', false, (on) => {
   if (on) {
     if (!legMarkerLayer) legMarkerLayer = buildLegMarkerLayer();
     legMarkerLayer.addTo(map);
