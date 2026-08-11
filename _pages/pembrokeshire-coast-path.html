@@ -1650,7 +1650,17 @@ function generateDailyBriefing() {
   md += `${fromName} → ${toName} — ${fmtMi(officialMi)}mi / ${fmtMi(officialKm)}km (${round2(pctOfTrail).toFixed(1)}% of trail) — ${mh}h${mm}m, ${breakMin}m breaks — ${fmtMi(cumulativeMi)}mi / ${fmtMi(cumulativeKm)}km total (${round2(cumulativePct).toFixed(1)}%)\n\n`;
 
   const toIdx = LEG_LIST.findIndex(l => l.name === toName);
-  const remaining = LEG_LIST.slice(toIdx + 1, toIdx + 1 + 8);
+  // Every option up to ~15mi out, inclusive of the first one that pushes past
+  // it (so the table always covers "how far can I reasonably go today").
+  const remaining = [];
+  {
+    let cum = 0;
+    for (let i = toIdx + 1; i < LEG_LIST.length; i++) {
+      remaining.push(LEG_LIST[i]);
+      cum += LEG_LIST[i].mi;
+      if (cum > 15) break;
+    }
+  }
   const pace = overallPaceStats();
   const paceMph = pace ? pace.speedExclMph : null;
 
@@ -1664,13 +1674,19 @@ function generateDailyBriefing() {
   md += `| Stop | Distance (mi / km) | Est. finish time |\n`;
   md += `|---|---|---|\n`;
 
+  // BOUNDARIES/DAY_STOPS labels often don't match their LEG_LIST entry name
+  // directly (e.g. "Newport" vs the leg table's "Newport Parrog") - resolve
+  // both sets through the same DAY_STOP_TO_LEG_NAME aliasing used elsewhere,
+  // otherwise most flags silently fail to match anything.
+  const boundaryLegNames = new Set(BOUNDARIES.map(b => DAY_STOP_TO_LEG_NAME[b.label] || b.label));
+  const dayStopLegNames = new Set(DAY_STOPS.map(s => DAY_STOP_TO_LEG_NAME[s.label] || s.label));
   let cum = 0;
   remaining.forEach(l => {
     cum += l.mi;
     const cumKm = cum * 1.609344;
     let flags = '';
-    if (BOUNDARIES.some(b => b.label === l.name)) flags += '\u{1F3C1}';
-    if (DAY_STOPS.some(s => s.label === l.name)) flags += '\u{1F6A9}';
+    if (boundaryLegNames.has(l.name)) flags += '\u{1F3C1}';
+    if (dayStopLegNames.has(l.name)) flags += '\u{1F6A9}';
     const walkMinutes = cum / paceMph * 60;
     const totalMinutesFromMidnight = 11 * 60 + walkMinutes + 60;
     const rounded = Math.round(totalMinutesFromMidnight / 15) * 15;
@@ -1880,7 +1896,7 @@ function updateFindMePanel(curLat, curLon) {
 // sections list below is derived from it plus LEG_LIST's per-leg official
 // mileages, computed fresh by the browser each load - never hand-typed, so
 // there's no cumulative-sum arithmetic for a human (or an LLM) to get wrong.
-const OFFICIAL_PROGRESS_LEG_NAME = "Porthgain";
+const OFFICIAL_PROGRESS_LEG_NAME = "Whitesands";
 const officialProgressIdx = LEG_LIST.findIndex(l => l.name === OFFICIAL_PROGRESS_LEG_NAME);
 const currentSectionId = LEG_LIST[officialProgressIdx].section;
 
@@ -2034,47 +2050,77 @@ const progressFromNowKm = new Array(LEG_LIST.length).fill(null);
 }
 const kmToMi = km => km / 1.609344;
 
+// The visible top-level list is Mum's 18-day plan (DAY_STOPS), not the 15
+// official sections - they mostly coincide, but Mum's plan splits 3 of the
+// official sections into two days each (at Ceibwr Bay, Milford Haven,
+// Pembroke - none of which are official section boundaries themselves).
+// Notes content and trail-line highlighting still key off the underlying
+// official section (sectionId below), since that's what NOTES/trailLayers
+// are actually written/tagged against - only the list's own grouping,
+// done/current/future logic and subsection ranges are day-scoped.
+// DAY_STOP_TO_LEG_NAME (defined above) already maps every DAY_STOPS label
+// that doesn't exactly match its LEG_LIST entry (e.g. "Fishguard" -> "Lower
+// Town") - reused here rather than the smaller TRACK_LABEL_ALIAS_TO_LEG_NAME,
+// which only covers the different set of quirks in REAL_TRACKS labels.
+function legIdxOf(name) {
+  if (name === 'St Dogmaels') return -1;
+  const resolved = DAY_STOP_TO_LEG_NAME[name] || name;
+  return LEG_LIST.findIndex(l => l.name === resolved);
+}
+const ADDED_DAY_STOP_NAMES = new Set(
+  DAY_STOPS.map(s => s.label).filter(name => !BOUNDARIES.some(b => b.label === name))
+);
+function nameWithFlag(name) {
+  return escapeHtml(name) + (ADDED_DAY_STOP_NAMES.has(name) ? ' \u{1F6A9}' : '');
+}
+const MUM_DAYS = [];
+for (let i = 0; i < DAY_STOPS.length - 1; i++) {
+  const fromName = DAY_STOPS[i].label, toName = DAY_STOPS[i + 1].label;
+  const firstLegIdx = legIdxOf(fromName), lastLegIdx = legIdxOf(toName);
+  MUM_DAYS.push({
+    id: i + 1, fromName, toName, firstLegIdx, lastLegIdx,
+    // resolved via DAY_STOP_TO_LEG_NAME first so officialMiBetween's own
+    // (smaller, different) alias table doesn't need to know these names too
+    miles: officialMiBetween(DAY_STOP_TO_LEG_NAME[fromName] || fromName, DAY_STOP_TO_LEG_NAME[toName] || toName),
+    sectionId: LEG_LIST[lastLegIdx].section,
+  });
+}
+
 const sectionsMount = document.getElementById('sections-mount');
-SECTIONS.forEach(s => {
+MUM_DAYS.forEach(d => {
   const div = document.createElement('div');
   div.className = 'section-item';
-  div.dataset.section = s.id;
-  const lastIdx = lastLegIdxOfSection[s.id];
+  div.dataset.section = d.id;
 
-  // If the progress marker lands exactly on a section's last leg (its full
-  // official end point, e.g. reaching "Porthgain" which is also section 4's
-  // own end), that section is fully done, not "partway through" - without
-  // this check the partial-progress branch below degenerates to something
-  // like "Porthgain to Porthgain" at 0.0 mi, since there's no remaining leg.
-  const currentSectionFullyDone = s.id === currentSectionId && officialProgressIdx === lastIdx;
+  const dayDone = d.lastLegIdx <= officialProgressIdx;
+  const dayCurrent = !dayDone && d.firstLegIdx < officialProgressIdx;
 
   let nameHtml, milesText;
-  if (s.id < currentSectionId || currentSectionFullyDone) {
+  if (dayDone) {
     div.classList.add('done');
-    nameHtml = `<span class="name">${escapeHtml(s.name)}</span>`;
-    milesText = `${s.miles} mi`;
-  } else if (s.id === currentSectionId) {
-    const [fromName, toName] = s.name.split(' to ');
-    nameHtml = `<span class="strike-part">${escapeHtml(fromName)}</span> ${escapeHtml(OFFICIAL_PROGRESS_LEG_NAME)} to ${escapeHtml(toName)}`;
-    milesText = `${kmToMi(progressFromNowKm[lastIdx]).toFixed(1)} mi`;
+    nameHtml = `<span class="name">${nameWithFlag(d.fromName)} to ${nameWithFlag(d.toName)}</span>`;
+    milesText = `${d.miles.toFixed(1)} mi`;
+  } else if (dayCurrent) {
+    nameHtml = `<span class="strike-part">${nameWithFlag(d.fromName)}</span> ${escapeHtml(OFFICIAL_PROGRESS_LEG_NAME)} to ${nameWithFlag(d.toName)}`;
+    milesText = `${kmToMi(progressFromNowKm[d.lastLegIdx]).toFixed(1)} mi`;
   } else {
-    nameHtml = `<span class="name">${escapeHtml(s.name)}</span>`;
-    milesText = `${kmToMi(progressFromNowKm[lastIdx]).toFixed(1)} mi`;
+    nameHtml = `<span class="name">${nameWithFlag(d.fromName)} to ${nameWithFlag(d.toName)}</span>`;
+    milesText = `${kmToMi(progressFromNowKm[d.lastLegIdx]).toFixed(1)} mi`;
   }
 
   div.innerHTML =
-    `<span class="section-toggle" data-toggle="${s.id}">&#9656;</span>` +
-    `<span class="num">${s.id}</span>${nameHtml}<span class="miles">${milesText}</span>`;
-  div.querySelector('.section-toggle').onclick = (e) => { e.stopPropagation(); toggleSubsections(s.id); };
-  div.onclick = (e) => { if (!e.target.classList.contains('section-toggle')) showSection(s.id); };
+    `<span class="section-toggle" data-toggle="${d.id}">&#9656;</span>` +
+    `<span class="num">${d.id}</span>${nameHtml}<span class="miles">${milesText}</span>`;
+  div.querySelector('.section-toggle').onclick = (e) => { e.stopPropagation(); toggleSubsections(d.id); };
+  div.onclick = (e) => { if (!e.target.classList.contains('section-toggle')) showSection(d.sectionId); };
   sectionsMount.appendChild(div);
 
   const sub = document.createElement('div');
   sub.className = 'subsection-list';
-  sub.id = `subsections-${s.id}`;
-  const legs = legsInSection(s.id);
-  if (s.id < currentSectionId) {
-    // completed section: plain historical breakdown, cumulative from that section's own start
+  sub.id = `subsections-${d.id}`;
+  const legs = LEG_LIST.slice(d.firstLegIdx + 1, d.lastLegIdx + 1).map((l, i) => ({ ...l, idx: d.firstLegIdx + 1 + i }));
+  if (dayDone) {
+    // completed day: plain historical breakdown, cumulative from the day's own start
     let cumMi = 0;
     legs.forEach(l => {
       cumMi += l.mi;
@@ -2084,7 +2130,7 @@ SECTIONS.forEach(s => {
       sub.appendChild(row);
     });
   } else {
-    // current/future section: cumulative "distance from now", skipping legs already passed
+    // current/future day: cumulative "distance from now", skipping legs already passed
     legs.filter(l => l.idx > officialProgressIdx).forEach(l => {
       const row = document.createElement('div');
       row.className = 'subsection-row' + (l.name === OFFICIAL_PROGRESS_LEG_NAME ? ' current-pos' : '');
