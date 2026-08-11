@@ -949,6 +949,7 @@ a.section-link { cursor: pointer; }
 .btn:hover { background: var(--surface-2); }
 .btn.small { padding: 4px 8px; font-size: 11.5px; box-shadow: none; }
 .toggle-all-row { display: flex; gap: 6px; margin: 4px 0 8px; }
+.pace-summary { font-size: 11.5px; color: var(--text-secondary); margin: 2px 0 6px; line-height: 1.5; }
 #gps-status {
   background: var(--surface-1);
   border: 1px solid var(--border);
@@ -987,6 +988,7 @@ a.section-link { cursor: pointer; }
       </div>
       <div id="base-layers-mount"></div>
       <h2>Actual walked route</h2>
+      <div id="overall-pace-stats" class="pace-summary"></div>
       <div class="toggle-all-row">
         <button class="btn small" id="show-all-tracks-btn">All days</button>
         <button class="btn small" id="hide-all-tracks-btn">No days</button>
@@ -1522,6 +1524,47 @@ function officialMiBetween(fromName, toName) {
   return LEG_LIST.slice(fromIdx + 1, toIdx + 1).reduce((a, l) => a + l.mi, 0);
 }
 
+// ---------- per-day timing/pace stats ----------
+// Distance always comes from officialMiBetween (never GPS) per the same rule
+// as the sidebar label - only the *timing* (start/end/break durations) comes
+// from the GPX data, since that's what it's actually reliable for.
+function fmtDuration(min) {
+  const h = Math.floor(min / 60), m = Math.round(min % 60);
+  return h > 0 ? `${h}h ${m}m` : `${m}m`;
+}
+function dayStats(track, officialMi) {
+  if (track.estimated || !track.startTime || !track.endTime || officialMi === null) return null;
+  const overallMin = (new Date(track.endTime) - new Date(track.startTime)) / 60000;
+  const breakMin = (track.waypoints || []).reduce((a, w) => a + (w.durationMin || 0), 0);
+  const movingMin = overallMin - breakMin;
+  return {
+    overallMin, breakMin, movingMin,
+    speedInclMph: officialMi / (overallMin / 60),
+    speedExclMph: officialMi / (movingMin / 60),
+  };
+}
+// Aggregate across every real (non-estimated) day with valid stats - recomputes
+// automatically as more days get added to REAL_TRACKS, no maintenance needed.
+function overallPaceStats() {
+  let totalMi = 0, totalOverallMin = 0, totalMovingMin = 0, days = 0;
+  REAL_TRACKS.forEach(track => {
+    const [fromName, toName] = track.label.split(' to ');
+    const officialMi = officialMiBetween(fromName, toName);
+    const stats = dayStats(track, officialMi);
+    if (!stats) return;
+    totalMi += officialMi;
+    totalOverallMin += stats.overallMin;
+    totalMovingMin += stats.movingMin;
+    days++;
+  });
+  if (days === 0) return null;
+  return {
+    days, totalMi,
+    speedInclMph: totalMi / (totalOverallMin / 60),
+    speedExclMph: totalMi / (totalMovingMin / 60),
+  };
+}
+
 REAL_TRACKS.forEach((track, i) => {
   const color = REAL_TRACK_COLORS[i % REAL_TRACK_COLORS.length];
   let layer = null;
@@ -1532,6 +1575,15 @@ REAL_TRACKS.forEach((track, i) => {
     const line = L.polyline(track.points, lineStyle);
     const kind = track.estimated ? 'best estimate — no GPS recorded' : 'actual GPS route';
     line.bindTooltip(`${escapeHtml(track.label)} — ${fmtTrackDate(track.date)} (${kind})`, { sticky: true });
+    const [statFromName, statToName] = track.label.split(' to ');
+    const stats = dayStats(track, officialMiBetween(statFromName, statToName));
+    if (stats) {
+      line.bindPopup(
+        `<b>${escapeHtml(track.label)}</b> &middot; ${fmtTrackDate(track.date)}` +
+        `<div class="poi-cat">Time: ${fmtDuration(stats.overallMin)} total &middot; ${fmtDuration(stats.movingMin)} walking</div>` +
+        `<div class="poi-cat">Pace (incl./excl. breaks): ${stats.speedInclMph.toFixed(1)} / ${stats.speedExclMph.toFixed(1)} mph</div>`
+      );
+    }
     group.addLayer(line);
     (track.waypoints || []).forEach(w => {
       // Sized a bit bigger than the line itself so lunch/pub stops etc. stay
@@ -1565,6 +1617,20 @@ REAL_TRACKS.forEach((track, i) => {
 
 document.getElementById('show-all-tracks-btn').onclick = () => REAL_TRACK_TOGGLES.forEach(t => t.set(true));
 document.getElementById('hide-all-tracks-btn').onclick = () => REAL_TRACK_TOGGLES.forEach(t => t.set(false));
+
+// Recomputed fresh from REAL_TRACKS every page load, so it automatically
+// picks up each new day added - nothing to maintain by hand.
+{
+  const agg = overallPaceStats();
+  const el = document.getElementById('overall-pace-stats');
+  if (agg) {
+    el.innerHTML =
+      `Avg pace so far (${agg.days} day${agg.days === 1 ? '' : 's'}, ${agg.totalMi.toFixed(1)} mi official): ` +
+      `<b>${agg.speedInclMph.toFixed(1)} / ${agg.speedExclMph.toFixed(1)} mph</b> (incl./excl. breaks)`;
+  } else {
+    el.style.display = 'none';
+  }
+}
 
 // ---------- progress tracking ----------
 // GPS is used as little as possible here, and only ever for a small residual
