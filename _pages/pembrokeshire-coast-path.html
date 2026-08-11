@@ -866,7 +866,9 @@ header .sub { color: var(--text-secondary); font-size: 12px; }
 .section-item .strike-part { text-decoration: line-through; color: var(--muted); }
 .section-toggle {
   display: inline-block;
-  width: 14px;
+  width: 22px;
+  font-size: 18px;
+  line-height: 1;
   cursor: pointer;
   color: var(--muted);
   transition: transform 0.15s ease;
@@ -1007,6 +1009,7 @@ a.section-link { cursor: pointer; }
   <button class="btn" id="sidebar-toggle">☰ Sections &amp; layers</button>
   <h1>Pembrokeshire Coast Path</h1>
   <span class="sub">Offline trail map — 15 sections · 621 points of interest · live GPS</span>
+  <button class="btn small" id="daily-report-btn">Generate daily report</button>
   <div id="progress-bar-wrap" title="Distance reached so far, measured to the end of the most recently recorded day">
     <div id="progress-bar-track"><div id="progress-bar-fill"></div></div>
     <span id="progress-bar-label">…</span>
@@ -1028,7 +1031,6 @@ a.section-link { cursor: pointer; }
         <button class="btn small" id="show-all-tracks-btn">All days</button>
         <button class="btn small" id="hide-all-tracks-btn">No days</button>
       </div>
-      <button class="btn small" id="daily-report-btn" style="margin-bottom:8px;">Generate daily report</button>
       <div id="real-tracks-mount"></div>
       <h2>Sections</h2>
       <div class="section-item" data-section="overview">
@@ -2109,14 +2111,17 @@ MUM_DAYS.forEach(d => {
   }
 
   div.innerHTML =
-    `<span class="section-toggle" data-toggle="${d.id}">&#9656;</span>` +
+    `<span class="section-toggle${dayDone ? '' : ' open'}" data-toggle="${d.id}">&#9656;</span>` +
     `<span class="num">${d.id}</span>${nameHtml}<span class="miles">${milesText}</span>`;
   div.querySelector('.section-toggle').onclick = (e) => { e.stopPropagation(); toggleSubsections(d.id); };
   div.onclick = (e) => { if (!e.target.classList.contains('section-toggle')) showSection(d.sectionId); };
   sectionsMount.appendChild(div);
 
+  // Non-completed days (current + future) start expanded; completed ones
+  // start collapsed, since there are more of those and their content is
+  // just a static historical record rather than anything still relevant.
   const sub = document.createElement('div');
-  sub.className = 'subsection-list';
+  sub.className = 'subsection-list' + (dayDone ? '' : ' open');
   sub.id = `subsections-${d.id}`;
   const legs = LEG_LIST.slice(d.firstLegIdx + 1, d.lastLegIdx + 1).map((l, i) => ({ ...l, idx: d.firstLegIdx + 1 + i }));
   if (dayDone) {
