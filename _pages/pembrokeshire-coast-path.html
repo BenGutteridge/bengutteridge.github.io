@@ -2005,6 +2005,53 @@ makeToggle('Subsection waypoints (approx.)', '<span style="display:inline-block;
   }
 });
 
+// Exact midpoint of OFFICIAL_TOTAL_KM (half the real trail total, not half of
+// LEG_MARKERS' entry count) - found by walking LEG_MARKERS for the two
+// consecutive leg endpoints that bracket it, then interpolating rawKm the
+// same proportional way LEG_MARKERS itself was built, so it lands on real
+// trail geometry via pointAtCumKm. Approximate by construction, like the
+// subsection waypoints above.
+const HALFWAY_KM = OFFICIAL_TOTAL_KM / 2;
+const HALFWAY_POINT = (() => {
+  let prev = { rawKm: 0, officialKm: 0 };
+  for (const m of LEG_MARKERS) {
+    if (m.officialKm >= HALFWAY_KM) {
+      const span = m.officialKm - prev.officialKm;
+      const t = span > 0 ? (HALFWAY_KM - prev.officialKm) / span : 0;
+      return pointAtCumKm(prev.rawKm + (m.rawKm - prev.rawKm) * t);
+    }
+    prev = m;
+  }
+  return pointAtCumKm(prev.rawKm);
+})();
+
+let halfwayMarkerLayer = null;
+function buildHalfwayMarkerLayer() {
+  const group = L.layerGroup();
+  const marker = L.marker([HALFWAY_POINT.lat, HALFWAY_POINT.lon], {
+    pane: 'waymarkerPane',
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="font-size:22px;line-height:1;transform:translate(-11px,-20px);">🏆</div>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 20],
+      popupAnchor: [0, -18],
+    })
+  });
+  marker.bindTooltip('Halfway point', { direction: 'top', offset: [0, -18] });
+  marker.bindPopup(`<b>Halfway point</b><div>${(HALFWAY_KM / 1.609344).toFixed(1)} mi / ${HALFWAY_KM.toFixed(1)} km</div><div class="poi-gr">Approx. position - interpolated along the trail from official leg mileage, not a surveyed point</div>`);
+  group.addLayer(marker);
+  return group;
+}
+makeToggle('Halfway point', '🏆', true, (on) => {
+  if (on) {
+    if (!halfwayMarkerLayer) halfwayMarkerLayer = buildHalfwayMarkerLayer();
+    halfwayMarkerLayer.addTo(map);
+  } else if (halfwayMarkerLayer) {
+    map.removeLayer(halfwayMarkerLayer);
+  }
+});
+
 // Estimates a live GPS fix's position on the official-mileage scale: finds
 // the most recently passed leg boundary (by rawKm, LEG_MARKERS is in true
 // trail order) and adds the GPS-measured residual from there to the fix
