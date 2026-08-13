@@ -1651,6 +1651,13 @@ function generateDailyBriefing() {
   md += `### ${dateStr}\n`;
   md += `${fromName} → ${toName} — ${fmtMi(officialMi)}mi / ${fmtMi(officialKm)}km (${round2(pctOfTrail).toFixed(1)}% of trail) — ${mh}h${mm}m, ${breakMin}m breaks — ${fmtMi(cumulativeMi)}mi / ${fmtMi(cumulativeKm)}km total (${round2(cumulativePct).toFixed(1)}%)\n\n`;
 
+  const halfwayMi = HALFWAY_KM / 1.609344;
+  const toHalfwayMi = halfwayMi - cumulativeMi;
+  const halfwayStatus = toHalfwayMi > 0
+    ? `${fmtMi(toHalfwayMi)}mi to go`
+    : `passed ${fmtMi(-toHalfwayMi)}mi ago`;
+  md += `\u{1F3C6} Halfway point (${fmtMi(halfwayMi)}mi / ${fmtMi(HALFWAY_KM)}km) — ${halfwayStatus} — ${halfwayDescription()}\n\n`;
+
   const toIdx = LEG_LIST.findIndex(l => l.name === toName);
   // Every option up to ~15mi out, inclusive of the first one that pushes past
   // it (so the table always covers "how far can I reasonably go today").
@@ -2012,23 +2019,59 @@ makeToggle('Subsection waypoints (approx.)', '<span style="display:inline-block;
 // trail geometry via pointAtCumKm. Approximate by construction, like the
 // subsection waypoints above.
 const HALFWAY_KM = OFFICIAL_TOTAL_KM / 2;
-const HALFWAY_POINT = (() => {
-  let prev = { rawKm: 0, officialKm: 0 };
+
+// Hand-written plain-English gloss for specific afterName->beforeName leg
+// pairs, keyed the same way DAY_STOP_TO_LEG_NAME etc. are - i.e. real-world
+// description of nearby named features (beach, village, headland), which
+// isn't data the trail JSON has and so can't be computed live. Falls back to
+// a generic but still fully live-computed sentence (built from the two real
+// LEG_LIST names either side) if the halfway point ever moves to a pair not
+// listed here, e.g. because a section's official mileage gets corrected.
+const HALFWAY_GLOSS = {
+  'Tower Point|Musselwick Sands': 'on the clifftop path just above Musselwick Sands beach, on the Marloes peninsula',
+};
+
+// Exact midpoint of OFFICIAL_TOTAL_KM (half the real trail total, not half of
+// LEG_MARKERS' entry count) - found by walking LEG_MARKERS for the two
+// consecutive leg endpoints that bracket it, then interpolating rawKm the
+// same proportional way LEG_MARKERS itself was built, so it lands on real
+// trail geometry via pointAtCumKm. Approximate by construction, like the
+// subsection waypoints above. Also records which two named legs it falls
+// between and how far (mi) from each, so the description stays accurate
+// automatically if LEG_LIST/section boundaries ever change.
+const HALFWAY_INFO = (() => {
+  let prev = { name: 'St Dogmaels', rawKm: 0, officialKm: 0 };
   for (const m of LEG_MARKERS) {
     if (m.officialKm >= HALFWAY_KM) {
       const span = m.officialKm - prev.officialKm;
       const t = span > 0 ? (HALFWAY_KM - prev.officialKm) / span : 0;
-      return pointAtCumKm(prev.rawKm + (m.rawKm - prev.rawKm) * t);
+      const pt = pointAtCumKm(prev.rawKm + (m.rawKm - prev.rawKm) * t);
+      const leg = LEG_LIST.find(l => l.name === m.name);
+      return {
+        lat: pt.lat, lon: pt.lon,
+        afterName: prev.name, beforeName: m.name,
+        miAfter: (HALFWAY_KM - prev.officialKm) / 1.609344,
+        miBefore: (m.officialKm - HALFWAY_KM) / 1.609344,
+        sectionId: leg ? leg.section : null,
+      };
     }
     prev = m;
   }
-  return pointAtCumKm(prev.rawKm);
+  const pt = pointAtCumKm(prev.rawKm);
+  return { lat: pt.lat, lon: pt.lon, afterName: prev.name, beforeName: null, miAfter: 0, miBefore: 0, sectionId: null };
 })();
+function halfwayDescription() {
+  const section = SECTIONS.find(s => s.id === HALFWAY_INFO.sectionId);
+  const gloss = HALFWAY_GLOSS[`${HALFWAY_INFO.afterName}|${HALFWAY_INFO.beforeName}`];
+  const between = `${HALFWAY_INFO.miAfter.toFixed(1)}mi past ${HALFWAY_INFO.afterName}, ${HALFWAY_INFO.miBefore.toFixed(1)}mi before ${HALFWAY_INFO.beforeName}`;
+  const sectionStr = section ? ` (Section ${section.id}: ${section.name})` : '';
+  return gloss ? `${gloss} — ${between}${sectionStr}` : `${between}${sectionStr}`;
+}
 
 let halfwayMarkerLayer = null;
 function buildHalfwayMarkerLayer() {
   const group = L.layerGroup();
-  const marker = L.marker([HALFWAY_POINT.lat, HALFWAY_POINT.lon], {
+  const marker = L.marker([HALFWAY_INFO.lat, HALFWAY_INFO.lon], {
     pane: 'waymarkerPane',
     icon: L.divIcon({
       className: '',
@@ -2039,7 +2082,7 @@ function buildHalfwayMarkerLayer() {
     })
   });
   marker.bindTooltip('Halfway point', { direction: 'top', offset: [0, -18] });
-  marker.bindPopup(`<b>Halfway point</b><div>${(HALFWAY_KM / 1.609344).toFixed(1)} mi / ${HALFWAY_KM.toFixed(1)} km</div><div class="poi-gr">Approx. position - interpolated along the trail from official leg mileage, not a surveyed point</div>`);
+  marker.bindPopup(`<b>Halfway point</b><div>${(HALFWAY_KM / 1.609344).toFixed(1)} mi / ${HALFWAY_KM.toFixed(1)} km</div><div>${escapeHtml(halfwayDescription())}</div><div class="poi-gr">Approx. position - interpolated along the trail from official leg mileage, not a surveyed point</div>`);
   group.addLayer(marker);
   return group;
 }
