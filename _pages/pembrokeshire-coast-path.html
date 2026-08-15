@@ -1651,13 +1651,6 @@ function generateDailyBriefing() {
   md += `### ${dateStr}\n`;
   md += `${fromName} → ${toName} — ${fmtMi(officialMi)}mi / ${fmtMi(officialKm)}km (${round2(pctOfTrail).toFixed(1)}% of trail) — ${mh}h${mm}m, ${breakMin}m breaks — ${fmtMi(cumulativeMi)}mi / ${fmtMi(cumulativeKm)}km total (${round2(cumulativePct).toFixed(1)}%)\n\n`;
 
-  const halfwayMi = HALFWAY_KM / 1.609344;
-  const toHalfwayMi = halfwayMi - cumulativeMi;
-  const halfwayStatus = toHalfwayMi > 0
-    ? `${fmtMi(toHalfwayMi)}mi to go`
-    : `passed ${fmtMi(-toHalfwayMi)}mi ago`;
-  md += `\u{1F3C6} Halfway point (${fmtMi(halfwayMi)}mi / ${fmtMi(HALFWAY_KM)}km) — ${halfwayStatus} — ${halfwayDescription()}\n\n`;
-
   const toIdx = LEG_LIST.findIndex(l => l.name === toName);
   // Every option up to ~15mi out, inclusive of the first one that pushes past
   // it (so the table always covers "how far can I reasonably go today").
