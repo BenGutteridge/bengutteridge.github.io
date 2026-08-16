@@ -1673,8 +1673,8 @@ function generateDailyBriefing() {
 
   md += `### Next leg — options from ${toName}\n`;
   md += `*Assumes start 11:00, walking pace ${paceMph.toFixed(1)} mph, 1hr breaks*\n\n`;
-  md += `| Stop | Distance (mi / km) | Est. finish time |\n`;
-  md += `|---|---|---|\n`;
+  md += `| Stop | Distance (mi / km) | Est. finish time | Car park |\n`;
+  md += `|---|---|---|---|\n`;
 
   // BOUNDARIES/DAY_STOPS labels often don't match their LEG_LIST entry name
   // directly (e.g. "Newport" vs the leg table's "Newport Parrog") - resolve
@@ -1694,7 +1694,8 @@ function generateDailyBriefing() {
     const rounded = Math.round(totalMinutesFromMidnight / 15) * 15;
     const fh = Math.floor(rounded / 60) % 24, fm = rounded % 60;
     const timeStr = `${String(fh).padStart(2, '0')}:${String(fm).padStart(2, '0')}`;
-    md += `| ${l.name}${flags ? ' ' + flags : ''} | ${fmtMi(cum)} / ${fmtMi(cumKm)} | ${timeStr} |\n`;
+    const carPark = nearestCarParkNote(l.name);
+    md += `| ${l.name}${flags ? ' ' + flags : ''} | ${fmtMi(cum)} / ${fmtMi(cumKm)} | ${timeStr} | ${carPark || '—'} |\n`;
   });
 
   return md;
@@ -1989,6 +1990,51 @@ const LEG_MARKERS = [];
       LEG_MARKERS.push({ name: l.name, lat: pt.lat, lng: pt.lon, rawKm, officialKm: officialCum });
     });
   });
+}
+
+// ---------- car parks near report stopping points ----------
+// POI already has a "Car Park" category (separate from "Public Transport",
+// which we deliberately ignore here) with free-text descriptions - parsed
+// qualitatively (free/charge, size or space count) rather than treated as
+// structured data, since the source text itself isn't structured.
+const CAR_PARKS = POI.features.filter(f => f.properties.cat === 'Car Park');
+function carParkQualitative(text) {
+  const lower = text.toLowerCase();
+  let cost = null;
+  if (/\bfree\b/.test(lower) && !/charge/.test(lower)) cost = 'free';
+  else if (/charge/.test(lower)) cost = 'charge';
+  const numWords = { one:1, two:2, three:3, four:4, five:5, six:6, seven:7, eight:8, nine:9, ten:10 };
+  let spaces = null;
+  const numMatch = lower.match(/(?:about |roughly |only |space for )?(\d+)\s*cars?\b/);
+  if (numMatch) {
+    spaces = numMatch[1];
+  } else {
+    const wordMatch = lower.match(/\b(one|two|three|four|five|six|seven|eight|nine|ten)\s*cars?\b/);
+    if (wordMatch) spaces = numWords[wordMatch[1]];
+  }
+  const sizeMatch = lower.match(/\b(small|medium-sized|medium|large)\b/);
+  const size = sizeMatch ? sizeMatch[1].replace('-sized', '') : null;
+  const parts = [];
+  parts.push(cost === 'free' ? 'free' : cost === 'charge' ? 'not free' : 'cost unclear');
+  if (spaces) parts.push(`~${spaces} spaces`);
+  else if (size) parts.push(size);
+  return parts.join(', ');
+}
+// Matched by proximity to the leg's own (possibly interpolated) LEG_MARKERS
+// position, not by name - most car parks don't share the leg's exact name.
+// 500m is generous enough to catch a car park serving a subsection waypoint
+// without the approximation drifting onto a neighbouring stop's car park.
+function nearestCarParkNote(legName) {
+  const marker = LEG_MARKERS.find(m => m.name === legName);
+  if (!marker) return null;
+  let best = null;
+  CAR_PARKS.forEach(f => {
+    const [lon, lat] = f.geometry.coordinates;
+    const d = haversineKm({ lat: marker.lat, lon: marker.lng }, { lat, lon });
+    if (d <= 0.5 && (!best || d < best.d)) best = { d, f };
+  });
+  if (!best) return null;
+  return `${best.f.properties.title.trim()} (${carParkQualitative(best.f.properties.text)})`;
 }
 
 let legMarkerLayer = null;
