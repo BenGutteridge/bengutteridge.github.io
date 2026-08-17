@@ -1832,6 +1832,7 @@ const DAY_STOP_TO_LEG_NAME = {
   'Solva': 'Lower Solva',
   'Dale': 'Dale Village',
   'Angle': 'Angle Village',
+  'Freshwater West': 'Freshwater West (beach)',
 };
 
 // Every DAY_STOP is itself always a real official subsection ending, so its
@@ -2458,18 +2459,56 @@ function onPosErr(err) {
 // real leg mileage, with only a small GPS residual within one subsection) -
 // consistent with never displaying a raw-GPS distance as if it were official.
 let distanceCheckStep = 0; // 0 = inactive, 1 = waiting for point A, 2 = waiting for point B
-let distanceCheckFirst = null; // { lat, lon, officialKm, rawKm, snapM }
+let distanceCheckFirst = null; // { lat, lon, officialKm, rawKm, snapM, name }
 let distanceCheckLayer = null;
 const distanceCheckBtn = document.getElementById('distance-check-btn');
 const distanceCheckPanel = document.getElementById('distance-check-panel');
 
-function clearDistanceCheckLayer() {
-  if (distanceCheckLayer) { map.removeLayer(distanceCheckLayer); distanceCheckLayer = null; }
+// Every named/marked point already on the map, so a click near one of them
+// picks that point by name instead of an anonymous trail location. Built
+// once from data that's all already loaded (POI, BOUNDARIES, DAY_STOPS,
+// LEG_MARKERS, real-track waypoints, and the three one-off custom markers).
+const NAMED_POINTS = [];
+POI.features.forEach(f => {
+  const [lon, lat] = f.geometry.coordinates;
+  NAMED_POINTS.push({ name: f.properties.title.trim(), lat, lon });
+});
+BOUNDARIES.forEach(b => NAMED_POINTS.push({ name: b.label, lat: b.lat, lon: b.lng }));
+DAY_STOPS.forEach(s => NAMED_POINTS.push({ name: s.label, lat: s.lat, lon: s.lng }));
+LEG_MARKERS.forEach(m => NAMED_POINTS.push({ name: m.name, lat: m.lat, lon: m.lng }));
+REAL_TRACKS.forEach(t => (t.waypoints || []).forEach(w => {
+  NAMED_POINTS.push({ name: `${w.name} (${t.date})`, lat: w.lat, lon: w.lng });
+}));
+NAMED_POINTS.push({ name: "Dobby's Grave", lat: DOBBYS_GRAVE.lat, lon: DOBBYS_GRAVE.lon });
+NAMED_POINTS.push({ name: 'Bosherston Lily Ponds', lat: BOSHERSTON_LILY_PONDS.lat, lon: BOSHERSTON_LILY_PONDS.lon });
+NAMED_POINTS.push({ name: 'Halfway point', lat: HALFWAY_INFO.lat, lon: HALFWAY_INFO.lon });
+REAL_TRACKS.filter(t => !t.estimated).forEach((t, i) => {
+  if (i === 0) NAMED_POINTS.push({ name: `Real start - ${t.label} (${t.date})`, lat: t.points[0][0], lon: t.points[0][1] });
+  const end = t.points[t.points.length - 1];
+  NAMED_POINTS.push({ name: `Real end - ${t.label} (${t.date})`, lat: end[0], lon: end[1] });
+});
+
+function nearestNamedPoint(lat, lon, maxKm) {
+  let best = null;
+  NAMED_POINTS.forEach(p => {
+    const d = haversineKm({ lat, lon }, { lat: p.lat, lon: p.lon });
+    if (d <= maxKm && (!best || d < best.d)) best = { d, name: p.name, lat: p.lat, lon: p.lon };
+  });
+  return best;
 }
 function snapToTrail(lat, lon) {
   const { distKm, cumKm } = nearestOnPath(lat, lon);
   const path = pointAtCumKm(cumKm);
   return { lat: path.lat, lon: path.lon, rawKm: cumKm, officialKm: estimateOfficialCumKm(cumKm), snapM: distKm * 1000 };
+}
+// If the click landed within 50m of a named point, use THAT point's own
+// coordinates (not the raw click) as the basis for the trail snap - more
+// precise than whatever pixel the click happened to land on, and it's what
+// the user actually meant to pick.
+function pickPoint(lat, lon) {
+  const named = nearestNamedPoint(lat, lon, 0.05);
+  const base = named || { lat, lon };
+  return { ...snapToTrail(base.lat, base.lon), name: named ? named.name : null };
 }
 function pointMarker(pt, label) {
   return L.marker([pt.lat, pt.lon], {
@@ -2502,15 +2541,22 @@ function cancelDistanceCheck() {
 distanceCheckBtn.onclick = () => {
   distanceCheckStep === 0 ? startDistanceCheck() : cancelDistanceCheck();
 };
+function pointStatusLine(pt) {
+  return pt.name
+    ? `${escapeHtml(pt.name)} (snapped ${Math.round(pt.snapM)}m to trail)`
+    : `unnamed point (snapped ${Math.round(pt.snapM)}m to trail)`;
+}
 map.on('click', (e) => {
   if (distanceCheckStep === 0) return;
-  const pt = snapToTrail(e.latlng.lat, e.latlng.lng);
+  const pt = pickPoint(e.latlng.lat, e.latlng.lng);
   if (distanceCheckStep === 1) {
     distanceCheckFirst = pt;
-    distanceCheckLayer = L.layerGroup([pointMarker(pt, 'A')]).addTo(map);
+    const marker = pointMarker(pt, 'A');
+    if (pt.name) marker.bindTooltip(escapeHtml(pt.name), { direction: 'top', offset: [0, -10] });
+    distanceCheckLayer = L.layerGroup([marker]).addTo(map);
     distanceCheckStep = 2;
     distanceCheckBtn.textContent = '📏 Click point B on the map…';
-    distanceCheckPanel.innerHTML = `<span class="close-x" id="distance-check-close">&times;</span><h4>Check distance</h4><p style="margin:2px 0;">Point A set (snapped ${Math.round(pt.snapM)}m to trail). Now click point B.</p>`;
+    distanceCheckPanel.innerHTML = `<span class="close-x" id="distance-check-close">&times;</span><h4>Check distance</h4><p style="margin:2px 0;">Point A: ${pointStatusLine(pt)}. Now click point B.</p>`;
     document.getElementById('distance-check-close').onclick = cancelDistanceCheck;
     return;
   }
@@ -2528,7 +2574,9 @@ map.on('click', (e) => {
     if (p.newFrag || parts.length === 0) parts.push([]);
     parts[parts.length - 1].push([p.lat, p.lon]);
   });
-  distanceCheckLayer.addLayer(pointMarker(b, 'B'));
+  const bMarker = pointMarker(b, 'B');
+  if (b.name) bMarker.bindTooltip(escapeHtml(b.name), { direction: 'top', offset: [0, -10] });
+  distanceCheckLayer.addLayer(bMarker);
   parts.forEach(part => {
     distanceCheckLayer.addLayer(L.polyline(part, { color: '#eb6834', weight: 5, opacity: 0.9, dashArray: '1,8' }));
   });
@@ -2539,6 +2587,9 @@ map.on('click', (e) => {
   const paceMph = pace ? pace.speedExclMph : null;
 
   let html = `<span class="close-x" id="distance-check-close">&times;</span><h4>Check distance</h4>`;
+  if (a.name || b.name) {
+    html += `<div style="margin-bottom:4px;font-weight:600;">${escapeHtml(a.name || 'Point A')} → ${escapeHtml(b.name || 'Point B')}</div>`;
+  }
   html += `<div class="row"><span class="label">Distance</span><span class="val">${distMi.toFixed(1)} mi (${distKm.toFixed(1)} km)</span></div>`;
   if (paceMph) {
     const timeMin = distMi / paceMph * 60;
