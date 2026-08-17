@@ -1886,11 +1886,22 @@ function legsForwardFrom(placeName, count) {
   return out;
 }
 
+let findMePanelDismissed = false;
+function dismissFindMePanel() {
+  findMePanelDismissed = true;
+  document.getElementById('find-me-panel').classList.remove('show');
+}
 function updateFindMePanel(curLat, curLon) {
+  // watchPosition can fire repeatedly (every few seconds, especially on iOS
+  // Chrome) for as long as GPS tracking is on, and this function is called
+  // on every single fix. Without this guard, closing the panel gets undone
+  // by the very next GPS update, making the close button appear broken -
+  // once dismissed, stay dismissed until the user restarts Find Me.
+  if (findMePanelDismissed) return;
   const panel = document.getElementById('find-me-panel');
   const { distKm, cumKm } = nearestOnPath(curLat, curLon);
 
-  const closeBtn = `<span class="close-x" onclick="document.getElementById('find-me-panel').classList.remove('show')">&times;</span>`;
+  const closeBtn = `<span class="close-x" onclick="dismissFindMePanel()">&times;</span>`;
 
   if (distKm > 3) {
     panel.innerHTML = `${closeBtn}<h4>Not on the trail</h4><p style="margin:2px 0;">Nearest point on the official path is ${distKm.toFixed(1)} km away — too far to be a GPS glitch on the trail itself, so skipping the distance breakdown.</p>`;
@@ -2438,6 +2449,7 @@ document.getElementById('locate-btn').onclick = () => {
     return;
   }
   gpsStatus.textContent = 'GPS: locating…';
+  findMePanelDismissed = false;
   watchId = navigator.geolocation.watchPosition(onPos, onPosErr, {
     enableHighAccuracy: true, maximumAge: 5000, timeout: 20000
   });
