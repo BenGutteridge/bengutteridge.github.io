@@ -2179,6 +2179,39 @@ makeToggle("Dobby's Grave", '🧝', true, (on) => {
   }
 });
 
+// National Nature Reserve on the old Stackpole Estate (Section 14) - already
+// present as a regular "Information" POI, but called out with its own
+// always-on marker like Dobby's Grave since it's a notable highlight in its
+// own right. Coordinates taken directly from that existing POI entry, so
+// no hand conversion needed here.
+const BOSHERSTON_LILY_PONDS = { lat: 51.6137066278177, lon: -4.92682943744636 };
+let lilyPondsLayer = null;
+function buildLilyPondsLayer() {
+  const group = L.layerGroup();
+  const marker = L.marker([BOSHERSTON_LILY_PONDS.lat, BOSHERSTON_LILY_PONDS.lon], {
+    pane: 'waymarkerPane',
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="font-size:22px;line-height:1;transform:translate(-11px,-20px);">🪷</div>`,
+      iconSize: [22, 22],
+      iconAnchor: [11, 20],
+      popupAnchor: [0, -18],
+    })
+  });
+  marker.bindTooltip('Bosherston Lily Ponds', { direction: 'top', offset: [0, -18] });
+  marker.bindPopup(`<b>Bosherston Lily Ponds</b><div>National Nature Reserve on the old Stackpole Estate - three limestone valleys dammed to form lakes, home to otters, water-fowl, dragonflies and water lilies (best in June).</div>`);
+  group.addLayer(marker);
+  return group;
+}
+makeToggle('Bosherston Lily Ponds', '🪷', true, (on) => {
+  if (on) {
+    if (!lilyPondsLayer) lilyPondsLayer = buildLilyPondsLayer();
+    lilyPondsLayer.addTo(map);
+  } else if (lilyPondsLayer) {
+    map.removeLayer(lilyPondsLayer);
+  }
+});
+
 // Estimates a live GPS fix's position on the official-mileage scale: finds
 // the most recently passed leg boundary (by rawKm, LEG_MARKERS is in true
 // trail order) and adds the GPS-measured residual from there to the fix
