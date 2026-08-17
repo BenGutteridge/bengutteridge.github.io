@@ -761,7 +761,7 @@ header .sub { color: var(--text-secondary); font-size: 12px; }
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-#find-me-panel {
+#find-me-panel, #distance-check-panel {
   display: none;
   background: var(--surface-1);
   border: 1px solid var(--border);
@@ -771,12 +771,12 @@ header .sub { color: var(--text-secondary); font-size: 12px; }
   max-width: 260px;
   box-shadow: 0 1px 4px rgba(0,0,0,0.15);
 }
-#find-me-panel.show { display: block; }
-#find-me-panel .row { display: flex; justify-content: space-between; gap: 10px; margin: 2px 0; }
-#find-me-panel .row .label { color: var(--text-secondary); }
-#find-me-panel .row .val { font-variant-numeric: tabular-nums; font-weight: 600; }
-#find-me-panel h4 { margin: 0 0 4px; font-size: 12px; color: var(--text-primary); }
-#find-me-panel .close-x {
+#find-me-panel.show, #distance-check-panel.show { display: block; }
+#find-me-panel .row, #distance-check-panel .row { display: flex; justify-content: space-between; gap: 10px; margin: 2px 0; }
+#find-me-panel .row .label, #distance-check-panel .row .label { color: var(--text-secondary); }
+#find-me-panel .row .val, #distance-check-panel .row .val { font-variant-numeric: tabular-nums; font-weight: 600; }
+#find-me-panel h4, #distance-check-panel h4 { margin: 0 0 4px; font-size: 12px; color: var(--text-primary); }
+#find-me-panel .close-x, #distance-check-panel .close-x {
   float: right;
   cursor: pointer;
   color: var(--muted);
@@ -785,7 +785,7 @@ header .sub { color: var(--text-secondary); font-size: 12px; }
   padding: 0 2px;
   margin: -2px -2px 0 6px;
 }
-#find-me-panel .close-x:hover { color: var(--text-primary); }
+#find-me-panel .close-x:hover, #distance-check-panel .close-x:hover { color: var(--text-primary); }
 #app {
   flex: 1;
   display: flex;
@@ -950,6 +950,7 @@ a.section-link { cursor: pointer; }
 }
 .btn:hover { background: var(--surface-2); }
 .btn.small { padding: 4px 8px; font-size: 11.5px; box-shadow: none; }
+.btn.active { background: #eb6834; border-color: #eb6834; color: #fff; }
 .toggle-all-row { display: flex; gap: 6px; margin: 4px 0 8px; }
 .pace-summary { font-size: 11.5px; color: var(--text-secondary); margin: 2px 0 6px; line-height: 1.5; }
 
@@ -1055,8 +1056,10 @@ a.section-link { cursor: pointer; }
     <div id="status-bar">
       <button class="btn" id="locate-btn">📍 Find me</button>
       <button class="btn" id="fit-btn">🗺️ Whole trail</button>
+      <button class="btn" id="distance-check-btn">📏 Check distance</button>
       <div id="gps-status">GPS: not started</div>
       <div id="find-me-panel"></div>
+      <div id="distance-check-panel"></div>
     </div>
   </div>
 </div>
@@ -2440,6 +2443,97 @@ function onPosErr(err) {
   }
   gpsStatus.textContent = 'GPS error: ' + err.message + hint;
 }
+
+// ---------- check distance between two picked points ----------
+// Same official-scale approach as the live "Find me" progress readout: snap
+// each click to the nearest point on OFFICIAL_PATH (nearestOnPath), then
+// convert to the official-mileage scale via estimateOfficialCumKm (mostly
+// real leg mileage, with only a small GPS residual within one subsection) -
+// consistent with never displaying a raw-GPS distance as if it were official.
+let distanceCheckStep = 0; // 0 = inactive, 1 = waiting for point A, 2 = waiting for point B
+let distanceCheckFirst = null; // { lat, lon, officialKm, rawKm, snapM }
+let distanceCheckLayer = null;
+const distanceCheckBtn = document.getElementById('distance-check-btn');
+const distanceCheckPanel = document.getElementById('distance-check-panel');
+
+function clearDistanceCheckLayer() {
+  if (distanceCheckLayer) { map.removeLayer(distanceCheckLayer); distanceCheckLayer = null; }
+}
+function snapToTrail(lat, lon) {
+  const { distKm, cumKm } = nearestOnPath(lat, lon);
+  const path = pointAtCumKm(cumKm);
+  return { lat: path.lat, lon: path.lon, rawKm: cumKm, officialKm: estimateOfficialCumKm(cumKm), snapM: distKm * 1000 };
+}
+function pointMarker(pt, label) {
+  return L.marker([pt.lat, pt.lon], {
+    pane: 'waymarkerPane',
+    icon: L.divIcon({
+      className: '',
+      html: `<div style="width:20px;height:20px;border-radius:50%;background:#eb6834;color:#fff;font:bold 12px/20px sans-serif;text-align:center;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.4);">${label}</div>`,
+      iconSize: [20, 20], iconAnchor: [10, 10],
+    }),
+  });
+}
+function startDistanceCheck() {
+  distanceCheckStep = 1;
+  distanceCheckFirst = null;
+  clearDistanceCheckLayer();
+  distanceCheckBtn.classList.add('active');
+  distanceCheckBtn.textContent = '📏 Click point A on the map…';
+  distanceCheckPanel.innerHTML = `<span class="close-x" id="distance-check-close">&times;</span><h4>Check distance</h4><p style="margin:2px 0;">Click anywhere near the trail for point A.</p>`;
+  distanceCheckPanel.classList.add('show');
+  document.getElementById('distance-check-close').onclick = cancelDistanceCheck;
+}
+function cancelDistanceCheck() {
+  distanceCheckStep = 0;
+  distanceCheckFirst = null;
+  clearDistanceCheckLayer();
+  distanceCheckBtn.classList.remove('active');
+  distanceCheckBtn.textContent = '📏 Check distance';
+  distanceCheckPanel.classList.remove('show');
+}
+distanceCheckBtn.onclick = () => {
+  distanceCheckStep === 0 ? startDistanceCheck() : cancelDistanceCheck();
+};
+map.on('click', (e) => {
+  if (distanceCheckStep === 0) return;
+  const pt = snapToTrail(e.latlng.lat, e.latlng.lng);
+  if (distanceCheckStep === 1) {
+    distanceCheckFirst = pt;
+    distanceCheckLayer = L.layerGroup([pointMarker(pt, 'A')]).addTo(map);
+    distanceCheckStep = 2;
+    distanceCheckBtn.textContent = '📏 Click point B on the map…';
+    distanceCheckPanel.innerHTML = `<span class="close-x" id="distance-check-close">&times;</span><h4>Check distance</h4><p style="margin:2px 0;">Point A set (snapped ${Math.round(pt.snapM)}m to trail). Now click point B.</p>`;
+    document.getElementById('distance-check-close').onclick = cancelDistanceCheck;
+    return;
+  }
+  // step 2
+  const a = distanceCheckFirst, b = pt;
+  const lo = Math.min(a.rawKm, b.rawKm), hi = Math.max(a.rawKm, b.rawKm);
+  const segment = OFFICIAL_PATH.filter(p => p.cumKm >= lo && p.cumKm <= hi).map(p => [p.lat, p.lon]);
+  distanceCheckLayer.addLayer(pointMarker(b, 'B'));
+  distanceCheckLayer.addLayer(L.polyline(segment, { color: '#eb6834', weight: 5, opacity: 0.9, dashArray: '1,8' }));
+
+  const distKm = Math.abs(b.officialKm - a.officialKm);
+  const distMi = distKm / 1.609344;
+  const pace = overallPaceStats();
+  const paceMph = pace ? pace.speedExclMph : null;
+
+  let html = `<span class="close-x" id="distance-check-close">&times;</span><h4>Check distance</h4>`;
+  html += `<div class="row"><span class="label">Distance</span><span class="val">${distMi.toFixed(1)} mi (${distKm.toFixed(1)} km)</span></div>`;
+  if (paceMph) {
+    const timeMin = distMi / paceMph * 60;
+    const h = Math.floor(timeMin / 60), m = Math.round(timeMin % 60);
+    html += `<div class="row"><span class="label">Est. time (excl. breaks, ${paceMph.toFixed(1)} mph)</span><span class="val">${h}h${String(m).padStart(2,'0')}m</span></div>`;
+  }
+  html += `<p style="margin:6px 0 0;color:var(--text-secondary);">Official-scale estimate along the trail - snapped ${Math.round(a.snapM)}m / ${Math.round(b.snapM)}m to the path.</p>`;
+  distanceCheckPanel.innerHTML = html;
+  document.getElementById('distance-check-close').onclick = cancelDistanceCheck;
+
+  distanceCheckStep = 0;
+  distanceCheckBtn.classList.remove('active');
+  distanceCheckBtn.textContent = '📏 Check distance';
+});
 
 // ---------- show all / hide all ----------
 document.getElementById('show-all-btn').onclick = () => ALL_TOGGLES.forEach(t => t.set(true));
