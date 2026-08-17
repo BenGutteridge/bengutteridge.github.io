@@ -1169,17 +1169,24 @@ const OFFICIAL_PATH = (() => {
     const parts = geom.type === 'MultiLineString' ? geom.coordinates : [geom.coordinates];
     parts.forEach(p => allParts.push(p.map(([lon, lat]) => [lat, lon])));
   }
-  const flat = []; // {lat, lon, cumKm}
+  const flat = []; // {lat, lon, cumKm, newFrag}
   let cum = 0;
   FRAGMENT_ORDER.forEach(([fi, rev]) => {
     const frag = rev ? [...allParts[fi]].reverse() : allParts[fi];
     frag.forEach((pt, i) => {
-      if (flat.length && i === 0) {
+      const newFrag = flat.length > 0 && i === 0;
+      if (newFrag) {
         // fragment boundary: don't add a distance for the (possible) gap
       } else if (flat.length) {
         cum += haversineKm(flat[flat.length - 1], pt);
       }
-      flat.push({ lat: pt[0], lon: pt[1], cumKm: cum });
+      // newFrag marks "this point starts a new physically-disconnected
+      // fragment" - consumers that draw a line through a cumKm range (e.g.
+      // the Check Distance highlight) must start a new polyline part here
+      // rather than connecting to the previous point, or they'll draw a
+      // fake straight-line connector across the gap (the same bug class
+      // TRAIL_CHUNKS' own .parts splitting was built to avoid).
+      flat.push({ lat: pt[0], lon: pt[1], cumKm: cum, newFrag });
     });
   });
   return flat;
@@ -2510,9 +2517,21 @@ map.on('click', (e) => {
   // step 2
   const a = distanceCheckFirst, b = pt;
   const lo = Math.min(a.rawKm, b.rawKm), hi = Math.max(a.rawKm, b.rawKm);
-  const segment = OFFICIAL_PATH.filter(p => p.cumKm >= lo && p.cumKm <= hi).map(p => [p.lat, p.lon]);
+  // Split into separate parts at every fragment boundary within range, same
+  // as TRAIL_CHUNKS' own .parts - otherwise a real gap between two
+  // physically-disconnected trail fragments (e.g. around Neyland/Pembroke
+  // Dock, where the digitized line has a known break) draws as a fake
+  // straight-line connector across the gap.
+  const inRange = OFFICIAL_PATH.filter(p => p.cumKm >= lo && p.cumKm <= hi);
+  const parts = [];
+  inRange.forEach(p => {
+    if (p.newFrag || parts.length === 0) parts.push([]);
+    parts[parts.length - 1].push([p.lat, p.lon]);
+  });
   distanceCheckLayer.addLayer(pointMarker(b, 'B'));
-  distanceCheckLayer.addLayer(L.polyline(segment, { color: '#eb6834', weight: 5, opacity: 0.9, dashArray: '1,8' }));
+  parts.forEach(part => {
+    distanceCheckLayer.addLayer(L.polyline(part, { color: '#eb6834', weight: 5, opacity: 0.9, dashArray: '1,8' }));
+  });
 
   const distKm = Math.abs(b.officialKm - a.officialKm);
   const distMi = distKm / 1.609344;
