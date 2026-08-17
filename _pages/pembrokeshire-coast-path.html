@@ -761,22 +761,24 @@ header .sub { color: var(--text-secondary); font-size: 12px; }
   white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
-#find-me-panel, #distance-check-panel {
+#find-me-panel, #distance-check-panel, #planner-panel, #saved-plans-panel {
   display: none;
   background: var(--surface-1);
   border: 1px solid var(--border);
   border-radius: 8px;
   padding: 8px 10px;
   font-size: 12px;
-  max-width: 260px;
+  max-width: 280px;
+  max-height: 60vh;
+  overflow-y: auto;
   box-shadow: 0 1px 4px rgba(0,0,0,0.15);
 }
-#find-me-panel.show, #distance-check-panel.show { display: block; }
-#find-me-panel .row, #distance-check-panel .row { display: flex; justify-content: space-between; gap: 10px; margin: 2px 0; }
-#find-me-panel .row .label, #distance-check-panel .row .label { color: var(--text-secondary); }
-#find-me-panel .row .val, #distance-check-panel .row .val { font-variant-numeric: tabular-nums; font-weight: 600; }
-#find-me-panel h4, #distance-check-panel h4 { margin: 0 0 4px; font-size: 12px; color: var(--text-primary); }
-#find-me-panel .close-x, #distance-check-panel .close-x {
+#find-me-panel.show, #distance-check-panel.show, #planner-panel.show, #saved-plans-panel.show { display: block; }
+#find-me-panel .row, #distance-check-panel .row, #planner-panel .row, #saved-plans-panel .row { display: flex; justify-content: space-between; gap: 10px; margin: 2px 0; }
+#find-me-panel .row .label, #distance-check-panel .row .label, #planner-panel .row .label, #saved-plans-panel .row .label { color: var(--text-secondary); }
+#find-me-panel .row .val, #distance-check-panel .row .val, #planner-panel .row .val, #saved-plans-panel .row .val { font-variant-numeric: tabular-nums; font-weight: 600; }
+#find-me-panel h4, #distance-check-panel h4, #planner-panel h4, #saved-plans-panel h4 { margin: 0 0 4px; font-size: 12px; color: var(--text-primary); }
+#find-me-panel .close-x, #distance-check-panel .close-x, #planner-panel .close-x, #saved-plans-panel .close-x {
   float: right;
   cursor: pointer;
   color: var(--muted);
@@ -785,7 +787,13 @@ header .sub { color: var(--text-secondary); font-size: 12px; }
   padding: 0 2px;
   margin: -2px -2px 0 6px;
 }
-#find-me-panel .close-x:hover, #distance-check-panel .close-x:hover { color: var(--text-primary); }
+#find-me-panel .close-x:hover, #distance-check-panel .close-x:hover, #planner-panel .close-x:hover, #saved-plans-panel .close-x:hover { color: var(--text-primary); }
+#planner-panel button.btn.small, #saved-plans-panel button.btn.small { margin-top: 4px; }
+.saved-plan-item { border-top: 1px solid var(--border); padding: 6px 0; }
+.saved-plan-item:first-of-type { border-top: none; }
+.saved-plan-item .title { font-weight: 600; }
+.saved-plan-item .meta { color: var(--text-secondary); font-size: 11px; }
+.saved-plan-item .actions { display: flex; gap: 4px; margin-top: 4px; flex-wrap: wrap; }
 #app {
   flex: 1;
   display: flex;
@@ -1057,9 +1065,13 @@ a.section-link { cursor: pointer; }
       <button class="btn" id="locate-btn">📍 Find me</button>
       <button class="btn" id="fit-btn">🗺️ Whole trail</button>
       <button class="btn" id="distance-check-btn">📏 Check distance</button>
+      <button class="btn" id="planner-btn">🗓️ Daily planner</button>
+      <button class="btn" id="saved-plans-btn">📋 Saved plans</button>
       <div id="gps-status">GPS: not started</div>
       <div id="find-me-panel"></div>
       <div id="distance-check-panel"></div>
+      <div id="planner-panel"></div>
+      <div id="saved-plans-panel"></div>
     </div>
   </div>
 </div>
@@ -1067,7 +1079,7 @@ a.section-link { cursor: pointer; }
 <div id="report-modal-backdrop">
   <div id="report-modal">
     <div id="report-modal-header">
-      <span>Daily report</span>
+      <span id="report-modal-title">Daily report</span>
       <button class="btn small" id="report-copy-btn">Copy to clipboard</button>
       <button class="btn small" id="report-close-btn">&times;</button>
     </div>
@@ -1775,9 +1787,14 @@ document.getElementById('show-all-tracks-btn').onclick = () => REAL_TRACK_TOGGLE
 document.getElementById('hide-all-tracks-btn').onclick = () => REAL_TRACK_TOGGLES.forEach(t => t.set(false));
 
 // ---------- daily report modal ----------
+// Reused for the Daily Planner's finished-plan output too (showPlanModal,
+// defined further down) - same modal, just a different title and body text,
+// rather than duplicating the whole backdrop/header/copy/close scaffolding.
 const reportBackdrop = document.getElementById('report-modal-backdrop');
 const reportBody = document.getElementById('report-modal-body');
+const reportModalTitle = document.getElementById('report-modal-title');
 document.getElementById('daily-report-btn').onclick = () => {
+  reportModalTitle.textContent = 'Daily report';
   reportBody.textContent = generateDailyBriefing();
   reportBackdrop.classList.add('open');
 };
@@ -2510,17 +2527,19 @@ function pickPoint(lat, lon) {
   const base = named || { lat, lon };
   return { ...snapToTrail(base.lat, base.lon), name: named ? named.name : null };
 }
-function pointMarker(pt, label) {
+function pointMarker(pt, label, color) {
+  color = color || '#eb6834';
   return L.marker([pt.lat, pt.lon], {
     pane: 'waymarkerPane',
     icon: L.divIcon({
       className: '',
-      html: `<div style="width:20px;height:20px;border-radius:50%;background:#eb6834;color:#fff;font:bold 12px/20px sans-serif;text-align:center;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.4);">${label}</div>`,
+      html: `<div style="width:20px;height:20px;border-radius:50%;background:${color};color:#fff;font:bold 12px/20px sans-serif;text-align:center;border:2px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.4);">${label}</div>`,
       iconSize: [20, 20], iconAnchor: [10, 10],
     }),
   });
 }
 function startDistanceCheck() {
+  if (plannerActive) cancelPlanner();
   distanceCheckStep = 1;
   distanceCheckFirst = null;
   clearDistanceCheckLayer();
@@ -2604,6 +2623,285 @@ map.on('click', (e) => {
   distanceCheckBtn.classList.remove('active');
   distanceCheckBtn.textContent = '📏 Check distance';
 });
+
+// ---------- daily planner ----------
+// Builds a multi-day trip plan by repeated point-picking, reusing exactly
+// the same pickPoint()/officialKm machinery Check Distance uses - so every
+// leg distance in the plan is the same official-scale estimate, not a raw
+// GPS figure. Each click previews a candidate (distance/time/name); a
+// separate Confirm button commits it and starts the next day from there.
+function bracketLegs(officialKm) {
+  let prev = { name: 'St Dogmaels', officialKm: 0 };
+  for (const m of LEG_MARKERS) {
+    if (m.officialKm >= officialKm) {
+      return {
+        afterName: prev.name, beforeName: m.name,
+        miAfter: (officialKm - prev.officialKm) / 1.609344,
+        miBefore: (m.officialKm - officialKm) / 1.609344,
+      };
+    }
+    prev = m;
+  }
+  return { afterName: prev.name, beforeName: null, miAfter: (officialKm - prev.officialKm) / 1.609344, miBefore: 0 };
+}
+
+let plannerActive = false;
+let plannerFrom = null; // { name, officialKm, rawKm, lat, lon }
+let plannerOriginalStart = null; // { name, lat, lon } - fixed for the whole plan
+let plannerDays = []; // [{ dayNum, fromName, toName, distMi, distKm, timeMin, lat, lon }]
+let plannerCandidate = null;
+let plannerCandidateMarker = null;
+let plannerLayer = null;
+const plannerBtn = document.getElementById('planner-btn');
+const plannerPanel = document.getElementById('planner-panel');
+const PLANNER_COLOR = '#7a5cff';
+
+function plannerPointFromProgress() {
+  const marker = LEG_MARKERS.find(m => m.name === OFFICIAL_PROGRESS_LEG_NAME);
+  return {
+    name: OFFICIAL_PROGRESS_LEG_NAME,
+    officialKm: officialProgressKm,
+    rawKm: marker ? marker.rawKm : 0,
+    lat: marker ? marker.lat : null,
+    lon: marker ? marker.lng : null,
+  };
+}
+function startPlanner() {
+  cancelDistanceCheck();
+  plannerActive = true;
+  plannerFrom = plannerPointFromProgress();
+  plannerOriginalStart = { name: plannerFrom.name, lat: plannerFrom.lat, lon: plannerFrom.lon };
+  plannerDays = [];
+  plannerCandidate = null;
+  plannerCandidateMarker = null;
+  if (plannerLayer) map.removeLayer(plannerLayer);
+  plannerLayer = L.layerGroup().addTo(map);
+  if (plannerFrom.lat != null) {
+    const m = pointMarker({ lat: plannerFrom.lat, lon: plannerFrom.lon }, 'S', PLANNER_COLOR);
+    m.bindTooltip(escapeHtml(plannerFrom.name), { direction: 'top', offset: [0, -10] });
+    plannerLayer.addLayer(m);
+  }
+  plannerBtn.classList.add('active');
+  plannerBtn.textContent = "🗓️ Click day 1's stop…";
+  renderPlannerPanel();
+}
+function cancelPlanner() {
+  plannerActive = false;
+  plannerFrom = null;
+  plannerOriginalStart = null;
+  plannerDays = [];
+  plannerCandidate = null;
+  plannerCandidateMarker = null;
+  if (plannerLayer) { map.removeLayer(plannerLayer); plannerLayer = null; }
+  plannerBtn.classList.remove('active');
+  plannerBtn.textContent = '🗓️ Daily planner';
+  plannerPanel.classList.remove('show');
+}
+plannerBtn.onclick = () => {
+  plannerActive ? cancelPlanner() : startPlanner();
+};
+function renderPlannerPanel() {
+  const dayNum = plannerDays.length + 1;
+  let html = `<span class="close-x" id="planner-close">&times;</span><h4>Daily planner — Day ${dayNum}</h4>`;
+  html += `<p style="margin:2px 0;">From <b>${escapeHtml(plannerFrom.name)}</b>. Click a stop near the trail for day ${dayNum}.</p>`;
+  if (plannerCandidate) {
+    const c = plannerCandidate;
+    html += `<div class="row"><span class="label">Candidate</span><span class="val">${escapeHtml(c.displayName)}</span></div>`;
+    html += `<div class="row"><span class="label">Distance</span><span class="val">${c.distMi.toFixed(1)} mi (${c.distKm.toFixed(1)} km)</span></div>`;
+    if (c.timeMin != null) {
+      const h = Math.floor(c.timeMin / 60), m = Math.round(c.timeMin % 60);
+      html += `<div class="row"><span class="label">Est. walking time</span><span class="val">${h}h${String(m).padStart(2, '0')}m</span></div>`;
+    }
+    html += `<button class="btn small" id="planner-confirm-btn" style="width:100%;">✅ Confirm day ${dayNum} stop</button>`;
+  } else {
+    html += `<p style="margin:2px 0;color:var(--text-secondary);">Click anywhere near the trail to preview a stop - click around freely, only Confirm locks it in.</p>`;
+  }
+  if (plannerDays.length > 0) {
+    html += `<p style="margin:8px 0 2px;color:var(--text-secondary);">${plannerDays.length} day${plannerDays.length > 1 ? 's' : ''} planned so far.</p>`;
+    html += `<button class="btn small" id="planner-finish-btn" style="width:100%;">\u{1F3C1} Finish plan (${plannerDays.length} day${plannerDays.length > 1 ? 's' : ''})</button>`;
+  }
+  plannerPanel.innerHTML = html;
+  plannerPanel.classList.add('show');
+  document.getElementById('planner-close').onclick = cancelPlanner;
+  if (plannerCandidate) document.getElementById('planner-confirm-btn').onclick = confirmPlannerCandidate;
+  if (plannerDays.length > 0) document.getElementById('planner-finish-btn').onclick = finishPlanner;
+}
+map.on('click', (e) => {
+  if (!plannerActive) return;
+  const pt = pickPoint(e.latlng.lat, e.latlng.lng);
+  const distKm = Math.abs(pt.officialKm - plannerFrom.officialKm);
+  const distMi = distKm / 1.609344;
+  const pace = overallPaceStats();
+  const paceMph = pace ? pace.speedExclMph : null;
+  const timeMin = paceMph ? distMi / paceMph * 60 : null;
+  const bracket = bracketLegs(pt.officialKm);
+  const displayName = pt.name || `${bracket.miAfter.toFixed(1)}mi past ${bracket.afterName}`;
+  plannerCandidate = { ...pt, distKm, distMi, timeMin, displayName };
+  if (plannerCandidateMarker) { plannerLayer.removeLayer(plannerCandidateMarker); plannerCandidateMarker = null; }
+  plannerCandidateMarker = L.circleMarker([pt.lat, pt.lon], { radius: 7, color: '#fff', weight: 2, fillColor: PLANNER_COLOR, fillOpacity: 0.6 }).addTo(plannerLayer);
+  renderPlannerPanel();
+});
+function confirmPlannerCandidate() {
+  const dayNum = plannerDays.length + 1;
+  const c = plannerCandidate;
+  plannerDays.push({
+    dayNum, fromName: plannerFrom.name, toName: c.displayName,
+    distMi: c.distMi, distKm: c.distKm, timeMin: c.timeMin,
+    lat: c.lat, lon: c.lon,
+  });
+  if (plannerCandidateMarker) { plannerLayer.removeLayer(plannerCandidateMarker); plannerCandidateMarker = null; }
+  const marker = pointMarker({ lat: c.lat, lon: c.lon }, String(dayNum), PLANNER_COLOR);
+  marker.bindTooltip(`Day ${dayNum}: ${escapeHtml(c.displayName)}`, { direction: 'top', offset: [0, -10] });
+  plannerLayer.addLayer(marker);
+  plannerFrom = { name: c.displayName, officialKm: c.officialKm, rawKm: c.rawKm, lat: c.lat, lon: c.lon };
+  plannerCandidate = null;
+  // Auto-finish once a confirmed stop reaches the trail's true end.
+  const remainingMi = (OFFICIAL_TOTAL_KM - c.officialKm) / 1.609344;
+  if (remainingMi <= 0.05) { finishPlanner(); return; }
+  renderPlannerPanel();
+}
+function buildPlanSummaryText(reachedEnd) {
+  const totalMi = plannerDays.reduce((a, d) => a + d.distMi, 0);
+  const totalKm = totalMi * 1.609344;
+  const totalTimeMin = plannerDays.reduce((a, d) => a + (d.timeMin || 0), 0);
+  let md = `## \u{1F5D3}\u{FE0F} Pembrokeshire Coast Path — Trip Plan\n\n`;
+  md += `Starting from ${plannerOriginalStart.name}\n\n`;
+  plannerDays.forEach(d => {
+    const h = Math.floor((d.timeMin || 0) / 60), m = Math.round((d.timeMin || 0) % 60);
+    md += `**Day ${d.dayNum}: ${d.fromName} → ${d.toName}**\n`;
+    md += `${fmtMi(d.distMi)}mi / ${fmtMi(d.distKm)}km — est. walking time ${h}h${String(m).padStart(2, '0')}m (excl. breaks)\n\n`;
+  });
+  md += `---\n`;
+  md += `**Total: ${fmtMi(totalMi)}mi / ${fmtMi(totalKm)}km over ${plannerDays.length} day${plannerDays.length > 1 ? 's' : ''}**\n`;
+  const th = Math.floor(totalTimeMin / 60), tm = Math.round(totalTimeMin % 60);
+  md += `**Total walking time: ${th}h${String(tm).padStart(2, '0')}m** (excl. breaks)\n`;
+  if (reachedEnd) md += `\nTrail complete! \u{1F389}\n`;
+  return md;
+}
+function showPlanModal(text) {
+  reportModalTitle.textContent = 'Trip plan';
+  reportBody.textContent = text;
+  reportBackdrop.classList.add('open');
+}
+const PLANS_STORAGE_KEY = 'pembsCoastMap.plans.v1';
+function loadSavedPlans() {
+  try { return JSON.parse(localStorage.getItem(PLANS_STORAGE_KEY)) || []; } catch (e) { return []; }
+}
+function savePlan(plan) {
+  const plans = loadSavedPlans();
+  plans.unshift(plan);
+  while (plans.length > 10) plans.pop();
+  try { localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(plans)); } catch (e) { /* storage unavailable/full - ignore */ }
+}
+function deletePlan(id) {
+  const plans = loadSavedPlans().filter(p => p.id !== id);
+  try { localStorage.setItem(PLANS_STORAGE_KEY, JSON.stringify(plans)); } catch (e) { /* ignore */ }
+  if (currentShownPlanId === id) hidePlanFromMap();
+  renderSavedPlansList();
+}
+function finishPlanner() {
+  if (plannerDays.length === 0) { cancelPlanner(); return; }
+  const reachedEnd = (OFFICIAL_TOTAL_KM - plannerFrom.officialKm) <= 0.1;
+  const summaryText = buildPlanSummaryText(reachedEnd);
+  const plan = {
+    id: 'plan-' + Date.now(),
+    createdAt: new Date().toISOString(),
+    start: plannerOriginalStart,
+    days: plannerDays.map(d => ({ ...d })),
+    finished: reachedEnd,
+    summaryText,
+  };
+  savePlan(plan);
+  showPlanModal(summaryText);
+  cancelPlanner();
+  renderSavedPlansList();
+}
+
+// ---------- saved plans menu + map display ----------
+const savedPlansBtn = document.getElementById('saved-plans-btn');
+const savedPlansPanel = document.getElementById('saved-plans-panel');
+let planPinsLayer = null;
+let currentShownPlanId = null;
+
+function fmtPlanDate(iso) {
+  const d = new Date(iso);
+  const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${WEEKDAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+function renderSavedPlansList() {
+  const plans = loadSavedPlans();
+  let html = `<span class="close-x" id="saved-plans-close">&times;</span><h4>Saved plans</h4>`;
+  if (plans.length === 0) {
+    html += `<p style="margin:2px 0;color:var(--text-secondary);">No plans saved yet - use Daily planner to make one.</p>`;
+  } else {
+    plans.forEach(p => {
+      const lastStop = p.days.length ? p.days[p.days.length - 1].toName : p.start.name;
+      const totalMi = p.days.reduce((a, d) => a + d.distMi, 0);
+      const showing = p.id === currentShownPlanId;
+      html += `<div class="saved-plan-item">`;
+      html += `<div class="title">${escapeHtml(p.start.name)} → ${escapeHtml(lastStop)}</div>`;
+      html += `<div class="meta">${fmtPlanDate(p.createdAt)} · ${p.days.length} day${p.days.length > 1 ? 's' : ''} · ${fmtMi(totalMi)}mi${p.finished ? ' · complete' : ''}</div>`;
+      html += `<div class="actions">`;
+      html += `<button class="btn small" data-plan-view="${p.id}">View</button>`;
+      html += showing
+        ? `<button class="btn small" data-plan-hide="1">Hide from map</button>`
+        : `<button class="btn small" data-plan-show="${p.id}">Show on map</button>`;
+      html += `<button class="btn small" data-plan-delete="${p.id}">Delete</button>`;
+      html += `</div></div>`;
+    });
+  }
+  savedPlansPanel.innerHTML = html;
+  savedPlansPanel.classList.add('show');
+  document.getElementById('saved-plans-close').onclick = () => savedPlansPanel.classList.remove('show');
+  savedPlansPanel.querySelectorAll('[data-plan-view]').forEach(btn => {
+    btn.onclick = () => {
+      const plan = loadSavedPlans().find(p => p.id === btn.dataset.planView);
+      if (plan) showPlanModal(plan.summaryText);
+    };
+  });
+  savedPlansPanel.querySelectorAll('[data-plan-show]').forEach(btn => {
+    btn.onclick = () => {
+      const plan = loadSavedPlans().find(p => p.id === btn.dataset.planShow);
+      if (plan) showPlanOnMap(plan);
+    };
+  });
+  const hideBtn = savedPlansPanel.querySelector('[data-plan-hide]');
+  if (hideBtn) hideBtn.onclick = hidePlanFromMap;
+  savedPlansPanel.querySelectorAll('[data-plan-delete]').forEach(btn => {
+    btn.onclick = () => deletePlan(btn.dataset.planDelete);
+  });
+}
+savedPlansBtn.onclick = () => {
+  if (savedPlansPanel.classList.contains('show')) { savedPlansPanel.classList.remove('show'); return; }
+  renderSavedPlansList();
+};
+function showPlanOnMap(plan) {
+  if (planPinsLayer) { map.removeLayer(planPinsLayer); planPinsLayer = null; }
+  const group = L.layerGroup();
+  if (plan.start && plan.start.lat != null) {
+    const m = pointMarker({ lat: plan.start.lat, lon: plan.start.lon }, 'S', PLANNER_COLOR);
+    m.bindPopup(`<b>${escapeHtml(plan.start.name)}</b><div class="poi-cat">Plan start</div>`);
+    group.addLayer(m);
+  }
+  let cum = 0;
+  plan.days.forEach(d => {
+    cum += d.distMi;
+    const m = pointMarker({ lat: d.lat, lon: d.lon }, String(d.dayNum), PLANNER_COLOR);
+    m.bindPopup(`<b>Day ${d.dayNum}: ${escapeHtml(d.toName)}</b><div class="poi-cat">${fmtMi(d.distMi)} mi this leg &middot; ${fmtMi(cum)} mi cumulative</div>`);
+    group.addLayer(m);
+  });
+  planPinsLayer = group.addTo(map);
+  currentShownPlanId = plan.id;
+  renderSavedPlansList();
+  const layers = group.getLayers();
+  if (layers.length) map.fitBounds(L.featureGroup(layers).getBounds(), { padding: [30, 30] });
+}
+function hidePlanFromMap() {
+  if (planPinsLayer) { map.removeLayer(planPinsLayer); planPinsLayer = null; }
+  currentShownPlanId = null;
+  renderSavedPlansList();
+}
 
 // ---------- show all / hide all ----------
 document.getElementById('show-all-btn').onclick = () => ALL_TOGGLES.forEach(t => t.set(true));
