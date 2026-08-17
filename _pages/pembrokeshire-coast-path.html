@@ -2527,6 +2527,9 @@ function pickPoint(lat, lon) {
   const base = named || { lat, lon };
   return { ...snapToTrail(base.lat, base.lon), name: named ? named.name : null };
 }
+function clearDistanceCheckLayer() {
+  if (distanceCheckLayer) { map.removeLayer(distanceCheckLayer); distanceCheckLayer = null; }
+}
 function pointMarker(pt, label, color) {
   color = color || '#eb6834';
   return L.marker([pt.lat, pt.lon], {
@@ -2565,9 +2568,9 @@ function pointStatusLine(pt) {
     ? `${escapeHtml(pt.name)} (snapped ${Math.round(pt.snapM)}m to trail)`
     : `unnamed point (snapped ${Math.round(pt.snapM)}m to trail)`;
 }
-map.on('click', (e) => {
+function handleDistanceCheckClick(latlng) {
   if (distanceCheckStep === 0) return;
-  const pt = pickPoint(e.latlng.lat, e.latlng.lng);
+  const pt = pickPoint(latlng.lat, latlng.lng);
   if (distanceCheckStep === 1) {
     distanceCheckFirst = pt;
     const marker = pointMarker(pt, 'A');
@@ -2622,7 +2625,7 @@ map.on('click', (e) => {
   distanceCheckStep = 0;
   distanceCheckBtn.classList.remove('active');
   distanceCheckBtn.textContent = '📏 Check distance';
-});
+}
 
 // ---------- daily planner ----------
 // Builds a multi-day trip plan by repeated point-picking, reusing exactly
@@ -2726,9 +2729,9 @@ function renderPlannerPanel() {
   if (plannerCandidate) document.getElementById('planner-confirm-btn').onclick = confirmPlannerCandidate;
   if (plannerDays.length > 0) document.getElementById('planner-finish-btn').onclick = finishPlanner;
 }
-map.on('click', (e) => {
+function handlePlannerClick(latlng) {
   if (!plannerActive) return;
-  const pt = pickPoint(e.latlng.lat, e.latlng.lng);
+  const pt = pickPoint(latlng.lat, latlng.lng);
   const distKm = Math.abs(pt.officialKm - plannerFrom.officialKm);
   const distMi = distKm / 1.609344;
   const pace = overallPaceStats();
@@ -2740,7 +2743,7 @@ map.on('click', (e) => {
   if (plannerCandidateMarker) { plannerLayer.removeLayer(plannerCandidateMarker); plannerCandidateMarker = null; }
   plannerCandidateMarker = L.circleMarker([pt.lat, pt.lon], { radius: 7, color: '#fff', weight: 2, fillColor: PLANNER_COLOR, fillOpacity: 0.6 }).addTo(plannerLayer);
   renderPlannerPanel();
-});
+}
 function confirmPlannerCandidate() {
   const dayNum = plannerDays.length + 1;
   const c = plannerCandidate;
@@ -2851,8 +2854,13 @@ function renderSavedPlansList() {
       html += `</div></div>`;
     });
   }
+  // Deliberately doesn't force the panel open here - this re-renders content
+  // on every data change (including from finishPlanner(), which runs before
+  // the user has ever opened this panel), so forcing 'show' here would leave
+  // it marked open in the DOM without the user asking, making the next
+  // toggle-button click close it instead of open it. Visibility is only
+  // ever set explicitly, by the button's own toggle and the close-x here.
   savedPlansPanel.innerHTML = html;
-  savedPlansPanel.classList.add('show');
   document.getElementById('saved-plans-close').onclick = () => savedPlansPanel.classList.remove('show');
   savedPlansPanel.querySelectorAll('[data-plan-view]').forEach(btn => {
     btn.onclick = () => {
@@ -2875,6 +2883,7 @@ function renderSavedPlansList() {
 savedPlansBtn.onclick = () => {
   if (savedPlansPanel.classList.contains('show')) { savedPlansPanel.classList.remove('show'); return; }
   renderSavedPlansList();
+  savedPlansPanel.classList.add('show');
 };
 function showPlanOnMap(plan) {
   if (planPinsLayer) { map.removeLayer(planPinsLayer); planPinsLayer = null; }
@@ -2902,6 +2911,25 @@ function hidePlanFromMap() {
   currentShownPlanId = null;
   renderSavedPlansList();
 }
+
+// ---------- unified click interception for Check Distance / Daily Planner ----------
+// Leaflet markers and other interactive layers stop a click from ever
+// reaching the map's own 'click' event (that's how their bound popups
+// normally open), so map.on('click', ...) alone never sees a click that
+// lands on an existing marker/POI - which is most of what someone picking
+// a named point actually wants to click. Intercepting at the DOM capture
+// phase, on the map container itself, runs before Leaflet's own listeners
+// get a chance to fire, so stopping propagation here makes a click on any
+// marker behave exactly like a click anywhere else while a picking mode is
+// active - selected for the pick, not opened as a normal info popup.
+map.getContainer().addEventListener('click', (domEvent) => {
+  if (distanceCheckStep === 0 && !plannerActive) return; // no picking mode active - let Leaflet handle it as usual
+  domEvent.stopPropagation();
+  domEvent.preventDefault();
+  const latlng = map.mouseEventToLatLng(domEvent);
+  if (distanceCheckStep !== 0) handleDistanceCheckClick(latlng);
+  else if (plannerActive) handlePlannerClick(latlng);
+}, true);
 
 // ---------- show all / hide all ----------
 document.getElementById('show-all-btn').onclick = () => ALL_TOGGLES.forEach(t => t.set(true));
