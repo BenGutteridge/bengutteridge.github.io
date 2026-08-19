@@ -2660,10 +2660,17 @@ function bracketLegs(officialKm) {
   return { afterName: prev.name, beforeName: null, miAfter: (officialKm - prev.officialKm) / 1.609344, miBefore: 0 };
 }
 
+function fmtCalendarDate(d) {
+  const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  return `${WEEKDAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 let plannerActive = false;
 let plannerFrom = null; // { name, officialKm, rawKm, lat, lon }
 let plannerOriginalStart = null; // { name, lat, lon } - fixed for the whole plan
-let plannerDays = []; // [{ dayNum, fromName, toName, distMi, distKm, timeMin, lat, lon }]
+let plannerStartDate = null; // Date - day 1 of the plan, defaults to today
+let plannerDays = []; // [{ dayNum, date, fromName, toName, distMi, distKm, timeMin, lat, lon }]
 let plannerCandidate = null;
 let plannerCandidateMarker = null;
 let plannerLayer = null;
@@ -2681,11 +2688,21 @@ function plannerPointFromProgress() {
     lon: marker ? marker.lng : null,
   };
 }
+// Day N's calendar date, counting from plannerStartDate (day 1 = today by
+// default) - a plain calendar-day offset, not tied to walking pace/rest
+// days, since the planner has no way to know which days the user actually
+// intends to walk on.
+function dayDate(dayNum) {
+  const d = new Date(plannerStartDate);
+  d.setDate(d.getDate() + dayNum - 1);
+  return d;
+}
 function startPlanner() {
   cancelDistanceCheck();
   plannerActive = true;
   plannerFrom = plannerPointFromProgress();
   plannerOriginalStart = { name: plannerFrom.name, lat: plannerFrom.lat, lon: plannerFrom.lon };
+  plannerStartDate = new Date();
   plannerDays = [];
   plannerCandidate = null;
   plannerCandidateMarker = null;
@@ -2697,13 +2714,14 @@ function startPlanner() {
     plannerLayer.addLayer(m);
   }
   plannerBtn.classList.add('active');
-  plannerBtn.textContent = "🗓️ Click day 1's stop…";
+  plannerBtn.textContent = `🗓️ Click ${fmtCalendarDate(dayDate(1))}'s stop…`;
   renderPlannerPanel();
 }
 function cancelPlanner() {
   plannerActive = false;
   plannerFrom = null;
   plannerOriginalStart = null;
+  plannerStartDate = null;
   plannerDays = [];
   plannerCandidate = null;
   plannerCandidateMarker = null;
@@ -2717,8 +2735,9 @@ plannerBtn.onclick = () => {
 };
 function renderPlannerPanel() {
   const dayNum = plannerDays.length + 1;
-  let html = `<span class="close-x" id="planner-close">&times;</span><h4>Daily planner — Day ${dayNum}</h4>`;
-  html += `<p style="margin:2px 0;">From <b>${escapeHtml(plannerFrom.name)}</b>. Click a stop near the trail for day ${dayNum}.</p>`;
+  const dateStr = fmtCalendarDate(dayDate(dayNum));
+  let html = `<span class="close-x" id="planner-close">&times;</span><h4>Daily planner — ${dateStr}</h4>`;
+  html += `<p style="margin:2px 0;">From <b>${escapeHtml(plannerFrom.name)}</b>. Click a stop near the trail for ${dateStr}.</p>`;
   if (plannerCandidate) {
     const c = plannerCandidate;
     html += `<div class="row"><span class="label">Candidate</span><span class="val">${escapeHtml(c.displayName)}</span></div>`;
@@ -2727,7 +2746,7 @@ function renderPlannerPanel() {
       const h = Math.floor(c.timeMin / 60), m = Math.round(c.timeMin % 60);
       html += `<div class="row"><span class="label">Est. walking time</span><span class="val">${h}h${String(m).padStart(2, '0')}m</span></div>`;
     }
-    html += `<button class="btn small" id="planner-confirm-btn" style="width:100%;">✅ Confirm day ${dayNum} stop</button>`;
+    html += `<button class="btn small" id="planner-confirm-btn" style="width:100%;">✅ Confirm ${dateStr} stop</button>`;
   } else {
     html += `<p style="margin:2px 0;color:var(--text-secondary);">Click anywhere near the trail to preview a stop - click around freely, only Confirm locks it in.</p>`;
   }
@@ -2758,15 +2777,16 @@ function handlePlannerClick(latlng) {
 }
 function confirmPlannerCandidate() {
   const dayNum = plannerDays.length + 1;
+  const date = dayDate(dayNum);
   const c = plannerCandidate;
   plannerDays.push({
-    dayNum, fromName: plannerFrom.name, toName: c.displayName,
+    dayNum, date: date.toISOString(), fromName: plannerFrom.name, toName: c.displayName,
     distMi: c.distMi, distKm: c.distKm, timeMin: c.timeMin,
     lat: c.lat, lon: c.lon,
   });
   if (plannerCandidateMarker) { plannerLayer.removeLayer(plannerCandidateMarker); plannerCandidateMarker = null; }
   const marker = pointMarker({ lat: c.lat, lon: c.lon }, String(dayNum), PLANNER_COLOR);
-  marker.bindTooltip(`Day ${dayNum}: ${escapeHtml(c.displayName)}`, { direction: 'top', offset: [0, -10] });
+  marker.bindTooltip(`${fmtCalendarDate(date)}: ${escapeHtml(c.displayName)}`, { direction: 'top', offset: [0, -10] });
   plannerLayer.addLayer(marker);
   plannerFrom = { name: c.displayName, officialKm: c.officialKm, rawKm: c.rawKm, lat: c.lat, lon: c.lon };
   plannerCandidate = null;
@@ -2783,7 +2803,7 @@ function buildPlanSummaryText(reachedEnd) {
   md += `Starting from ${plannerOriginalStart.name}\n\n`;
   plannerDays.forEach(d => {
     const h = Math.floor((d.timeMin || 0) / 60), m = Math.round((d.timeMin || 0) % 60);
-    md += `**Day ${d.dayNum}: ${d.fromName} → ${d.toName}**\n`;
+    md += `**${fmtCalendarDate(new Date(d.date))}: ${d.fromName} → ${d.toName}**\n`;
     md += `${fmtMi(d.distMi)}mi / ${fmtMi(d.distKm)}km — est. walking time ${h}h${String(m).padStart(2, '0')}m (excl. breaks)\n\n`;
   });
   md += `---\n`;
@@ -2839,10 +2859,7 @@ let planPinsLayer = null;
 let currentShownPlanId = null;
 
 function fmtPlanDate(iso) {
-  const d = new Date(iso);
-  const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${WEEKDAYS[d.getDay()]} ${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  return fmtCalendarDate(new Date(iso));
 }
 function renderSavedPlansList() {
   const plans = loadSavedPlans();
@@ -2909,7 +2926,8 @@ function showPlanOnMap(plan) {
   plan.days.forEach(d => {
     cum += d.distMi;
     const m = pointMarker({ lat: d.lat, lon: d.lon }, String(d.dayNum), PLANNER_COLOR);
-    m.bindPopup(`<b>Day ${d.dayNum}: ${escapeHtml(d.toName)}</b><div class="poi-cat">${fmtMi(d.distMi)} mi this leg &middot; ${fmtMi(cum)} mi cumulative</div>`);
+    const label = d.date ? fmtCalendarDate(new Date(d.date)) : `Day ${d.dayNum}`; // older saved plans predate per-day dates
+    m.bindPopup(`<b>${label}: ${escapeHtml(d.toName)}</b><div class="poi-cat">${fmtMi(d.distMi)} mi this leg &middot; ${fmtMi(cum)} mi cumulative</div>`);
     group.addLayer(m);
   });
   planPinsLayer = group.addTo(map);
