@@ -1698,19 +1698,13 @@ function generateDailyBriefing() {
   md += `| Stop | Distance (mi / km) | Est. finish time | Car park |\n`;
   md += `|---|---|---|---|\n`;
 
-  // BOUNDARIES/DAY_STOPS labels often don't match their LEG_LIST entry name
-  // directly (e.g. "Newport" vs the leg table's "Newport Parrog") - resolve
-  // both sets through the same DAY_STOP_TO_LEG_NAME aliasing used elsewhere,
-  // otherwise most flags silently fail to match anything.
-  const boundaryLegNames = new Set(BOUNDARIES.map(b => DAY_STOP_TO_LEG_NAME[b.label] || b.label));
-  const dayStopLegNames = new Set(DAY_STOPS.map(s => DAY_STOP_TO_LEG_NAME[s.label] || s.label));
   let cum = 0;
   remaining.forEach(l => {
     cum += l.mi;
     const cumKm = cum * 1.609344;
     let flags = '';
-    if (boundaryLegNames.has(l.name)) flags += '\u{1F3C1}';
-    if (dayStopLegNames.has(l.name)) flags += '\u{1F6A9}';
+    if (BOUNDARY_LEG_NAMES.has(l.name)) flags += '\u{1F3C1}';
+    if (DAY_STOP_LEG_NAMES.has(l.name)) flags += '\u{1F6A9}';
     const walkMinutes = cum / paceMph * 60;
     const totalMinutesFromMidnight = 11 * 60 + walkMinutes + 60;
     const rounded = Math.round(totalMinutesFromMidnight / 15) * 15;
@@ -1855,33 +1849,29 @@ const DAY_STOP_TO_LEG_NAME = {
 // Every DAY_STOP is itself always a real official subsection ending, so its
 // cumulative distance is the exact LEG_LIST sum to that leg - no GPS, no
 // interpolation, same aliasing DAY_STOP_TO_LEG_NAME already does below.
-const dayStopsWithKm = DAY_STOPS.map(d => {
-  if (d.label === 'St Dogmaels') return { ...d, cumKm: 0 };
-  const legName = DAY_STOP_TO_LEG_NAME[d.label] || d.label;
-  const idx = LEG_LIST.findIndex(l => l.name === legName);
-  const cumKm = idx === -1 ? null : LEG_LIST.slice(0, idx + 1).reduce((a, l) => a + l.mi, 0) * 1.609344;
-  return { ...d, cumKm };
-});
+// BOUNDARIES/DAY_STOPS labels often don't match their LEG_LIST entry name
+// directly (e.g. "Newport" vs the leg table's "Newport Parrog") - resolve
+// both sets through the same DAY_STOP_TO_LEG_NAME aliasing used elsewhere,
+// otherwise most 🏁/🚩 flags silently fail to match anything. Shared by the
+// daily report's next-leg table and the Find Me panel's stop list.
+const BOUNDARY_LEG_NAMES = new Set(BOUNDARIES.map(b => DAY_STOP_TO_LEG_NAME[b.label] || b.label));
+const DAY_STOP_LEG_NAMES = new Set(DAY_STOPS.map(s => DAY_STOP_TO_LEG_NAME[s.label] || s.label));
 
-function legsForwardFrom(placeName, count) {
-  if (placeName === 'St Dogmaels') {
-    // the trail start is never a leg's "to" value - the "next" legs are simply the first ones
-    const out = [];
-    let cumMi = 0;
-    for (let i = 0; i < LEG_LIST.length && out.length < count; i++) {
-      cumMi += LEG_LIST[i].mi;
-      out.push({ name: LEG_LIST[i].name, km: cumMi * 1.609344 });
-    }
-    return out;
-  }
-  const lookupName = DAY_STOP_TO_LEG_NAME[placeName] || placeName;
-  const startIdx = LEG_LIST.findIndex(l => l.name === lookupName);
-  if (startIdx === -1) return [];
+// Every official subsection stop ahead of an arbitrary point on the
+// official-mileage scale, up to maxMi - inclusive of the first one that
+// pushes past it, same convention as the daily report's next-leg table.
+// Unlike the old Mum's-PDF-only lookup this doesn't need a named starting
+// point, so it works from wherever the live GPS fix actually is (usually
+// mid-leg, not sitting exactly on a subsection boundary).
+function legsUpToDistance(officialKm, maxMi) {
   const out = [];
-  let cumMi = 0;
-  for (let i = startIdx + 1; i < LEG_LIST.length && out.length < count; i++) {
-    cumMi += LEG_LIST[i].mi;
-    out.push({ name: LEG_LIST[i].name, km: cumMi * 1.609344 });
+  let cumKm = 0;
+  for (let i = 0; i < LEG_LIST.length; i++) {
+    cumKm += LEG_LIST[i].mi * 1.609344;
+    if (cumKm <= officialKm) continue; // this leg's end is behind (or at) the current position
+    const kmFromHere = cumKm - officialKm;
+    out.push({ name: LEG_LIST[i].name, km: kmFromHere });
+    if (kmFromHere / 1.609344 > maxMi) break;
   }
   return out;
 }
@@ -1910,28 +1900,26 @@ function updateFindMePanel(curLat, curLon) {
   }
 
   // currentOfficialKm is on the same official-mileage scale as officialProgressKm
-  // and dayStopsWithKm - everything below is a plain subtraction on that one
-  // scale, with GPS only ever supplying the small residual inside
-  // estimateOfficialCumKm() itself.
+  // and LEG_LIST's own cumulative sums - everything below is a plain
+  // subtraction on that one scale, with GPS only ever supplying the small
+  // residual inside estimateOfficialCumKm() itself.
   const currentOfficialKm = estimateOfficialCumKm(cumKm);
   // Clamped at 0: right at today's start, the small GPS residual can land
   // either side of the exact checkpoint, which would otherwise show as a
   // confusing small negative distance.
   const todaySoFar = Math.max(0, currentOfficialKm - officialProgressKm);
-  const nextStop = dayStopsWithKm.find(d => d.cumKm !== null && d.cumKm > currentOfficialKm);
   let html = closeBtn + `<h4>Progress from today's start</h4>`;
   html += `<div class="row"><span class="label">Today so far</span><span class="val">${todaySoFar.toFixed(1)} km</span></div>`;
 
-  if (nextStop) {
-    const toNext = nextStop.cumKm - currentOfficialKm;
-    html += `<div class="row"><span class="label">To ${escapeHtml(nextStop.label)} (Mum's PDF)</span><span class="val">${toNext.toFixed(1)} km</span></div>`;
-    const further = legsForwardFrom(nextStop.label, 4);
-    if (further.length) {
-      html += `<h4 style="margin-top:6px;">Beyond that (official mileage)</h4>`;
-      further.forEach(f => {
-        html += `<div class="row"><span class="label">To ${escapeHtml(f.name)}</span><span class="val">${(toNext + f.km).toFixed(1)} km</span></div>`;
-      });
-    }
+  const ahead = legsUpToDistance(currentOfficialKm, 10);
+  if (ahead.length) {
+    html += `<h4 style="margin-top:6px;">Stopping points ahead (~10mi)</h4>`;
+    ahead.forEach(f => {
+      let flags = '';
+      if (BOUNDARY_LEG_NAMES.has(f.name)) flags += ' \u{1F3C1}';
+      if (DAY_STOP_LEG_NAMES.has(f.name)) flags += ' \u{1F6A9}';
+      html += `<div class="row"><span class="label">${escapeHtml(f.name)}${flags}</span><span class="val">${f.km.toFixed(1)} km</span></div>`;
+    });
   } else {
     html += `<div class="row"><span class="label">Remaining</span><span class="val">${(OFFICIAL_TOTAL_KM - currentOfficialKm).toFixed(1)} km to Amroth</span></div>`;
   }
