@@ -935,6 +935,10 @@ a.section-link { cursor: pointer; }
 .toggle-row.off { opacity: 0.4; }
 .toggle-row input[type="checkbox"] { margin: 0; flex: none; }
 #base-layers-mount .toggle-row { margin: 4px 0; }
+.rest-day-row {
+  display: flex; align-items: center; gap: 6px; margin: 2px 0;
+  color: var(--text-secondary); font-style: italic; opacity: 0.75;
+}
 
 #status-bar {
   position: absolute;
@@ -1775,6 +1779,20 @@ REAL_TRACKS.forEach((track, i) => {
     else if (layer) { map.removeLayer(layer); }
   }, realTracksMount, `track:${track.date}`);
   REAL_TRACK_TOGGLES.push(control);
+});
+
+// Days with no walking at all - shown as plain informational rows (no
+// toggle, no track data) so the day-by-day log stays continuous instead of
+// silently skipping from the last GPX straight to the next one.
+const REST_DAYS = [
+  { date: '2026-08-21' },
+  { date: '2026-08-22' },
+];
+REST_DAYS.forEach(r => {
+  const row = document.createElement('div');
+  row.className = 'rest-day-row';
+  row.innerHTML = `<span>\u{1F634}</span><span>${fmtTrackDate(r.date)} — Rest day</span>`;
+  realTracksMount.appendChild(row);
 });
 
 document.getElementById('show-all-tracks-btn').onclick = () => REAL_TRACK_TOGGLES.forEach(t => t.set(true));
