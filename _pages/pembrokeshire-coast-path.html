@@ -1117,6 +1117,7 @@ a.section-link { cursor: pointer; }
           <button class="btn small" id="show-all-tracks-btn">All days</button>
           <button class="btn small" id="hide-all-tracks-btn">No days</button>
         </div>
+        <div id="route-markers-mount"></div>
         <div id="real-tracks-mount"></div>
       </div>
       <h2>Sections</h2>
@@ -1736,11 +1737,13 @@ makeToggle('Trail by distance (19 even chunks)', `<span style="width:14px;height
 // ---------- actual walked route (real GPS tracks, one entry per day recorded) ----------
 // Colors alternate down this list so consecutive days are visually distinct where
 // one day's end meets the next day's start; cycles if more days are added than colors.
-// Two shades of one hue, alternating by day - reads as one continuous route
-// made of daily segments, rather than a rainbow of unrelated lines.
-const REAL_TRACK_COLORS = ['#6d28d9', '#a78bfa'];
+// Two contrasting hues (not two shades of one hue - too similar to tell apart
+// at a glance) so adjacent days are easy to distinguish where one day's end
+// meets the next day's start.
+const REAL_TRACK_COLORS = ['#e11d48', '#0d9488'];
 const REAL_TRACK_TOGGLES = [];
 const realTracksMount = document.getElementById('real-tracks-mount');
+const routeMarkersMount = document.getElementById('route-markers-mount');
 
 function fmtTrackDate(iso) {
   const d = new Date(iso + 'T12:00:00Z'); // noon UTC avoids local-timezone date-shift
@@ -1898,11 +1901,20 @@ function generateDailyBriefing() {
   return md;
 }
 
+// Waypoint markers (lunch stops, breaks, etc.) are built/shown separately
+// from the line itself, gated by the single global "Route markers" toggle
+// below (not part of the per-day track) - with 17+ days' worth stacked up
+// they clutter the map more than they help, so they default off and stay
+// off even when a day's line is on, until switched on explicitly.
+let routeMarkersControl = null; // assigned after the loop; referenced by each day's closure below
+const REAL_TRACK_DAY_ENTRIES = []; // {dayControl, getMarkerLayer} - read by the markers toggle
+
 REAL_TRACKS.forEach((track, i) => {
   const color = REAL_TRACK_COLORS[i % REAL_TRACK_COLORS.length];
-  let layer = null;
+  let lineLayer = null;
+  let markerLayer = null;
 
-  function buildTrackLayer() {
+  function buildLineLayer() {
     const group = L.layerGroup();
     const lineStyle = { color, weight: 5, opacity: 0.9, pane: 'realTrackPane' };
     const line = L.polyline(track.points, lineStyle);
@@ -1928,6 +1940,11 @@ REAL_TRACKS.forEach((track, i) => {
       loopLine.bindTooltip(`${escapeHtml(track.label)} — bonus loop, not part of the official route`, { sticky: true });
       group.addLayer(loopLine);
     }
+    return group;
+  }
+
+  function buildMarkerLayer() {
+    const group = L.layerGroup();
     (track.waypoints || []).forEach(w => {
       // Sized a bit bigger than the line itself so lunch/pub stops etc. stay
       // visible - a previous, more line-hugging size (radius 3) was too subtle.
@@ -1951,12 +1968,39 @@ REAL_TRACKS.forEach((track, i) => {
     : `${track.distanceMi} mi GPS-measured`; // fallback if a label doesn't match LEG_LIST
   const label = `${fmtTrackDate(track.date)} — ${escapeHtml(track.label)} (${distLabel})`;
   const swatch = `<span style="width:14px;height:3px;background:${color};border-radius:2px;"></span>`;
-  const control = makeToggle(label, swatch, true, (on) => {
-    if (on) { if (!layer) layer = buildTrackLayer(); layer.addTo(map); }
-    else if (layer) { map.removeLayer(layer); }
+  const dayControl = makeToggle(label, swatch, true, (on) => {
+    if (on) {
+      if (!lineLayer) lineLayer = buildLineLayer();
+      lineLayer.addTo(map);
+      if (routeMarkersControl && routeMarkersControl.isOn()) {
+        if (!markerLayer) markerLayer = buildMarkerLayer();
+        markerLayer.addTo(map);
+      }
+    } else {
+      if (lineLayer) map.removeLayer(lineLayer);
+      if (markerLayer) map.removeLayer(markerLayer);
+    }
   }, realTracksMount, `track:${track.date}`, 'route');
-  REAL_TRACK_TOGGLES.push(control);
+  REAL_TRACK_TOGGLES.push(dayControl);
+  REAL_TRACK_DAY_ENTRIES.push({
+    dayControl,
+    getMarkerLayer: () => { if (!markerLayer) markerLayer = buildMarkerLayer(); return markerLayer; },
+  });
 });
+
+routeMarkersControl = makeToggle(
+  'Route markers (lunch stops, breaks, etc.)',
+  '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #6d28d9;"></span>',
+  false,
+  (on) => {
+    REAL_TRACK_DAY_ENTRIES.forEach(({ dayControl, getMarkerLayer }) => {
+      if (!dayControl.isOn()) return; // only affects days whose line is currently shown
+      const ml = getMarkerLayer();
+      if (on) ml.addTo(map); else map.removeLayer(ml);
+    });
+  },
+  routeMarkersMount, 'route:markers', 'route'
+);
 
 // Days with no walking at all - shown as plain informational rows (no
 // toggle, no track data) so the day-by-day log stays continuous instead of
@@ -2408,13 +2452,20 @@ const OFFICIAL_TOTAL_MI = OFFICIAL_TOTAL_KM / 1.609344;
 const PROGRESS_BAR_TOTAL_KM = 299;
 const PROGRESS_BAR_TOTAL_MI = PROGRESS_BAR_TOTAL_KM / 1.609344;
 function updateProgressBar() {
-  const pct = Math.min(100, (officialProgressKm / PROGRESS_BAR_TOTAL_KM) * 100);
+  // The trail is walked end to end when progress reaches its last LEG_LIST
+  // leg - full stop, regardless of how that compares to the 299km headline
+  // total used for display (that figure never quite reconciles with the
+  // leg-by-leg sum - see PROGRESS_BAR_TOTAL_KM above - so computing percent
+  // complete from it would leave a finished walk showing under 100%).
+  const complete = officialProgressIdx >= LEG_LIST.length - 1;
+  const pct = complete ? 100 : Math.min(100, (officialProgressKm / PROGRESS_BAR_TOTAL_KM) * 100);
   document.getElementById('progress-bar-fill').style.width = pct.toFixed(1) + '%';
-  const remainingKm = PROGRESS_BAR_TOTAL_KM - officialProgressKm;
+  const traveledKm = complete ? PROGRESS_BAR_TOTAL_KM : officialProgressKm;
+  const remainingKm = complete ? 0 : PROGRESS_BAR_TOTAL_KM - officialProgressKm;
   const remainingMi = remainingKm / 1.609344;
   document.getElementById('progress-bar-label').textContent =
-    `${(officialProgressKm / 1.609344).toFixed(1)}/${PROGRESS_BAR_TOTAL_MI.toFixed(0)} mi ` +
-    `(${Math.round(officialProgressKm)}/${Math.round(PROGRESS_BAR_TOTAL_KM)} km) · ${pct.toFixed(0)}% · ` +
+    `${(traveledKm / 1.609344).toFixed(1)}/${PROGRESS_BAR_TOTAL_MI.toFixed(0)} mi ` +
+    `(${Math.round(traveledKm)}/${Math.round(PROGRESS_BAR_TOTAL_KM)} km) · ${pct.toFixed(0)}% · ` +
     `${remainingMi.toFixed(1)} mi (${Math.round(remainingKm)} km) remaining`;
 }
 updateProgressBar();
