@@ -1192,22 +1192,21 @@ const MAPNOTES_HTML = "<h2>Map / GIS data</h2>\n<h3>What's on the site</h3>\n<p>
 
 const HOWTO_HTML = `
 <h2>How to use this map</h2>
-<p>A quick guide to everything on this page.</p>
 <h3>Sidebar</h3>
 <ul>
-<li><strong>Layers</strong> &mdash; the trail line and map tiles are on by default. Tick <strong>Official section start/end points</strong> to show a flag at the start/end of each of the 15 official sections, or <strong>Subsection waypoints</strong> for every named stop in between.</li>
-<li><strong>Sections</strong> &mdash; the 15 official sections of the trail, north to south. Click a section's name to open its notes (distance, difficulty, hazards, facilities); click the small &#8599; icon to open that section's page on the official Pembrokeshire Coast Path website in a new tab. Click the small triangle to expand a section into its individual named stops, each with a running distance total.</li>
-<li><strong>Points of interest</strong> &mdash; tick a category (car parks, beaches, facilities, cautions, "worth a look" sites, etc.) to show its markers on the map. Click any marker for details.</li>
+<li><strong>Layers</strong> &mdash; trail line and map tiles are on by default; also lets you show official section start/end flags or every named waypoint.</li>
+<li><strong>Sections</strong> &mdash; the 15 official sections, north to south. Click a name for its notes; click &#8599; to open that section on the official website; click the triangle to expand its stops with running distances.</li>
+<li><strong>Points of interest</strong> &mdash; tick a category to show its markers: Information, Walking Access Point, Car Park, Public Transport, Beach, Worth a Look, Facilities, Caution. Click a marker for details.</li>
 </ul>
 <h3>Map buttons</h3>
 <ul>
-<li><strong>&#128205; Find me</strong> &mdash; shows your live location on the map and how far you are from the next few official stopping points.</li>
-<li><strong>&#128506;&#65039; Whole trail</strong> &mdash; zooms back out to fit the entire trail.</li>
-<li><strong>&#128207; Check distance</strong> &mdash; click any two points (or existing markers) to measure the trail distance and estimated walking time between them.</li>
-<li><strong>&#128197;&#65039; Daily planner</strong> &mdash; click a starting point, then click each day's stopping point in turn to build a multi-day walking itinerary, with estimated distance and time per day. Plans can be saved and viewed again later.</li>
+<li><strong>&#128205; Find me</strong> &mdash; your live location, and distance to the next few stops.</li>
+<li><strong>&#128506;&#65039; Whole trail</strong> &mdash; zoom to fit the whole trail.</li>
+<li><strong>&#128207; Check distance</strong> &mdash; click any two points to measure distance and walking time between them.</li>
+<li><strong>&#128197;&#65039; Daily planner</strong> &mdash; click a start point, then each day's stop in turn, to build a multi-day itinerary with distance/time per day. Plans can be saved.</li>
 </ul>
 <h3>Show our route</h3>
-<p>The <strong>&#128205; Show our route</strong> button near the top of the sidebar reveals the author's own real GPS-tracked walk of the entire trail &mdash; day by day, including any detours &mdash; on top of the official trail line.</p>
+<p><strong>&#128205; Show our route</strong>, near the top of the sidebar, reveals the author's real GPS-tracked walk of the trail day by day, including detours. A separate "Route markers" toggle adds lunch/break stop markers per day (off by default, since with 17+ days it gets busy).</p>
 <p><a href="#" class="section-link" data-section="overview">&larr; Back to overview</a></p>`;
 
 const CAT_STYLE = {
@@ -1609,7 +1608,7 @@ makeToggle('Official section start/end points (15)', '🚩', false, (on) => {
   } else if (cleanBoundaryLayer) {
     map.removeLayer(cleanBoundaryLayer);
   }
-}, undefined, undefined, 'clean');
+}, undefined, 'boundary-markers-clean', 'clean');
 
 // Dev version: preserved exactly as originally built - chequered flag for
 // official boundaries plus a separate red-flag layer for Mum's 18-day plan
@@ -1622,7 +1621,7 @@ makeToggle('Official section start/end points (15)', '🏁', false, (on) => {
   } else if (boundaryLayer) {
     map.removeLayer(boundaryLayer);
   }
-}, undefined, undefined, 'dev');
+}, undefined, 'boundary-markers-dev', 'dev');
 
 // 16 of these 19 points sit at the exact same coordinate as an official
 // boundary above (16 official boundaries are also day-plan stops); offset the
@@ -2463,8 +2462,9 @@ function updateProgressBar() {
   const traveledKm = complete ? PROGRESS_BAR_TOTAL_KM : officialProgressKm;
   const remainingKm = complete ? 0 : PROGRESS_BAR_TOTAL_KM - officialProgressKm;
   const remainingMi = remainingKm / 1.609344;
+  const traveledMiStr = complete ? PROGRESS_BAR_TOTAL_MI.toFixed(0) : (traveledKm / 1.609344).toFixed(1);
   document.getElementById('progress-bar-label').textContent =
-    `${(traveledKm / 1.609344).toFixed(1)}/${PROGRESS_BAR_TOTAL_MI.toFixed(0)} mi ` +
+    `${traveledMiStr}/${PROGRESS_BAR_TOTAL_MI.toFixed(0)} mi ` +
     `(${Math.round(traveledKm)}/${Math.round(PROGRESS_BAR_TOTAL_KM)} km) · ${pct.toFixed(0)}% · ` +
     `${remainingMi.toFixed(1)} mi (${Math.round(remainingKm)} km) remaining`;
 }
