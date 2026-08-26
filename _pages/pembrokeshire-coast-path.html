@@ -2377,14 +2377,24 @@ function estimateOfficialCumKm(rawCumKm) {
 const officialProgressKm = LEG_LIST.slice(0, officialProgressIdx + 1).reduce((a, l) => a + l.mi, 0) * 1.609344;
 
 const OFFICIAL_TOTAL_MI = OFFICIAL_TOTAL_KM / 1.609344;
+// The progress bar alone displays the commonly-quoted "299km" headline
+// total (the official site's own overall trail-length figure) rather than
+// OFFICIAL_TOTAL_KM (the internally-consistent 292km sum of LEG_LIST, used
+// everywhere else - Check Distance, Planner, Halfway point, etc.) - by
+// request, purely for the total shown on this one bar, accepting that it
+// doesn't quite reconcile with the leg-by-leg sum (same unreconciled
+// headline-vs-subsection-total quirk that's present site-wide in the
+// official data itself).
+const PROGRESS_BAR_TOTAL_KM = 299;
+const PROGRESS_BAR_TOTAL_MI = PROGRESS_BAR_TOTAL_KM / 1.609344;
 function updateProgressBar() {
-  const pct = Math.min(100, (officialProgressKm / OFFICIAL_TOTAL_KM) * 100);
+  const pct = Math.min(100, (officialProgressKm / PROGRESS_BAR_TOTAL_KM) * 100);
   document.getElementById('progress-bar-fill').style.width = pct.toFixed(1) + '%';
-  const remainingKm = OFFICIAL_TOTAL_KM - officialProgressKm;
+  const remainingKm = PROGRESS_BAR_TOTAL_KM - officialProgressKm;
   const remainingMi = remainingKm / 1.609344;
   document.getElementById('progress-bar-label').textContent =
-    `${(officialProgressKm / 1.609344).toFixed(1)}/${OFFICIAL_TOTAL_MI.toFixed(0)} mi ` +
-    `(${Math.round(officialProgressKm)}/${Math.round(OFFICIAL_TOTAL_KM)} km) · ${pct.toFixed(0)}% · ` +
+    `${(officialProgressKm / 1.609344).toFixed(1)}/${PROGRESS_BAR_TOTAL_MI.toFixed(0)} mi ` +
+    `(${Math.round(officialProgressKm)}/${Math.round(PROGRESS_BAR_TOTAL_KM)} km) · ${pct.toFixed(0)}% · ` +
     `${remainingMi.toFixed(1)} mi (${Math.round(remainingKm)} km) remaining`;
 }
 updateProgressBar();
