@@ -1084,7 +1084,7 @@ a.section-link { cursor: pointer; }
 <header>
   <button class="btn" id="sidebar-toggle">☰ Sections &amp; layers</button>
   <h1>Pembrokeshire Coast Path</h1>
-  <span class="sub">Offline trail map — 15 sections · 621 points of interest · live GPS</span>
+  <button class="btn small" id="howto-btn">❓ How to use</button>
   <button class="btn small dev-only" id="daily-report-btn">Generate daily report</button>
   <div id="progress-bar-wrap" class="route-only" title="Distance reached so far, measured to the end of the most recently recorded day">
     <div id="progress-bar-track"><div id="progress-bar-fill"></div></div>
@@ -1188,6 +1188,26 @@ const LEG_LIST = [{"section": 1, "name": "Poppit Sands", "mi": 1.4}, {"section":
 
 const OVERVIEW_HTML = "<h2>Pembrokeshire Coast Path \u2014 Planning Notes</h2>\n<p>Source: <a href=\"https://www.pembrokeshirecoast.wales/coast-path/planning-your-walk/\" target=\"_blank\" rel=\"noopener\">pembrokeshirecoast.wales/coast-path/planning-your-walk</a> (accessed 2026-08-07).</p>\n<p>These are condensed, reorganised planning notes (not a verbatim copy of the site) covering</p>\n<p>the 15 official sections of the trail, north to south (St Dogmaels \u2192 Amroth), roughly 186 miles / 299 km total.</p>\n<p>Each section has its own file with distance, difficulty, hazards, facilities and highlights.</p>\n<p><strong>No embedded/interactive map was found on the official pages</strong> \u2014 see `99-map-notes.md` for what's available instead (GPX/route-planning alternatives).</p>\n<h3>Section list</h3>\n<table>\n<thead><tr><th>#</th><th>Section</th><th>Distance</th><th>File</th></tr></thead>\n<tbody>\n<tr><td>1</td><td>St Dogmaels to Newport</td><td>15.5 mi / 25 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"1\">01-st-dogmaels-to-newport.md</a></td></tr>\n<tr><td>2</td><td>Newport to Fishguard</td><td>12 mi / 19.3 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"2\">02-newport-to-fishguard.md</a></td></tr>\n<tr><td>3</td><td>Fishguard to Pwll Deri</td><td>9 mi / 14.5 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"3\">03-fishguard-to-pwll-deri.md</a></td></tr>\n<tr><td>4</td><td>Pwll Deri to Porthgain</td><td>12 mi / 19.3 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"4\">04-pwll-deri-to-porthgain.md</a></td></tr>\n<tr><td>5</td><td>Porthgain to Whitesands</td><td>10 mi / 16.1 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"5\">05-porthgain-to-whitesands.md</a></td></tr>\n<tr><td>6</td><td>Whitesands to Solva</td><td>13 mi / 20.9 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"6\">06-whitesands-to-solva.md</a></td></tr>\n<tr><td>7</td><td>Solva to Broad Haven</td><td>12 mi / 19.3 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"7\">07-solva-to-broad-haven.md</a></td></tr>\n<tr><td>8</td><td>Broad Haven to Martin's Haven</td><td>11 mi / 17.7 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"8\">08-broad-haven-to-martins-haven.md</a></td></tr>\n<tr><td>9</td><td>Martin's Haven to Dale</td><td>10 mi / 16.1 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"9\">09-martins-haven-to-dale.md</a></td></tr>\n<tr><td>10</td><td>Dale to Neyland</td><td>16 mi / 25.75 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"10\">10-dale-to-neyland.md</a></td></tr>\n<tr><td>11</td><td>Neyland to Angle</td><td>16 mi / 25.75 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"11\">11-neyland-to-angle.md</a></td></tr>\n<tr><td>12</td><td>Angle to Freshwater West</td><td>10 mi / 16.1 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"12\">12-angle-to-freshwater-west.md</a></td></tr>\n<tr><td>13</td><td>Freshwater West to Broad Haven South</td><td>10 mi / 16.1 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"13\">13-freshwater-west-to-broad-haven-south.md</a></td></tr>\n<tr><td>14</td><td>Broad Haven South to Skrinkle Haven</td><td>11 mi / 17.7 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"14\">14-broad-haven-south-to-skrinkle-haven.md</a></td></tr>\n<tr><td>15</td><td>Skrinkle Haven to Amroth</td><td>14 mi / 22.5 km</td><td><a href=\"#\" class=\"section-link\" data-section=\"15\">15-skrinkle-haven-to-amroth.md</a></td></tr>\n</tbody></table>\n<h3>Cross-cutting notes</h3>\n<ul>\n<li><strong>Direction of travel</strong>: most official guides (and the numbering above) run north\u2013south, St Dogmaels to Amroth. You can walk either way.</li>\n<li><strong>No stiles</strong> on most southern sections nowadays \u2014 the Park Authority has been replacing stiles with gates. A few named exceptions are called out in section 1, 10 and 14 notes.</li>\n<li><strong>Tidal crossings / beach routes</strong>: several sections have a tidal shortcut (beach/causeway) plus a longer high-tide road alternative. Always check tide times before relying on the low-tide route \u2014 flagged per-section below where relevant (notably Dale\u2013Neyland's Gann and Sandy Haven crossings, and Newport, Solva, Sandy Haven and Amroth-area beach walks).</li>\n<li><strong>Castlemartin Range</strong> (section 13): part of the path crosses an active military firing range. Range East is open evenings/weekends/bank holidays; Range West is essentially never open to the public except guided walks. Check firing times before walking: 01646 662367, or the range safety page on gov.uk.</li>\n<li><strong>Mobile signal</strong> is patchy to non-existent on many remote clifftop stretches (especially sections 1, 10, 12, 13).</li>\n<li><strong>Standard safety code</strong> repeated on every section page: stay on the path away from cliff edges, supervise children, wear proper footwear, carry warm/waterproof clothing, don't take beach shortcuts without checking tides, don't sit under or climb cliffs, keep dogs under close control, and note that horses/cycles aren't permitted on most of the path.</li>\n<li><strong>Custom itinerary tool</strong>: the official site points walkers to the UK National Trails website for an interactive point-of-interest map and itinerary planner \u2014 see map notes file.</li>\n</ul>";
 const MAPNOTES_HTML = "<h2>Map / GIS data</h2>\n<h3>What's on the site</h3>\n<p>The top-level `/coast-path/planning-your-walk/` page itself has <strong>no embedded map</strong>. Each of the 15 individual section pages, however, embeds two things via iframe:</p>\n<p>1. An <strong>Esri ArcGIS Online web map</strong> showing that section's route and points of interest (e.g. `pcnpa.maps.arcgis.com/apps/Embed/index.html?webmap=&lt;id&gt;`).</p>\n<p>2. A <strong>Google Street View embed</strong> for a fixed point at the start of the section.</p>\n<h3>What was extracted</h3>\n<p>The ArcGIS web maps are public items, so the underlying feature data was pulled directly from the National Park Authority's ArcGIS Online feature services (not just a picture of a map \u2014 the actual route geometry and point data):</p>\n<ul>\n<li><strong>`pembrokeshire-coast-path.gpx`</strong> \u2014 a single GPX file containing:</li>\n<li>15 `&lt;trk&gt;` tracks, one per official section, each with the full line-by-line trail geometry (the same data driving the embedded maps).</li>\n<li>621 `&lt;wpt&gt;` waypoints covering every point of interest across the whole trail (car parks, facilities, beaches, cautions, \"worth a look\" sites, walking access points), each with its name, category, grid reference and description.</li>\n<li>This should load directly into most GPS apps/devices (OS Maps, Gaia GPS, Garmin, komoot, etc.) as both a route to follow and a full set of POI pins.</li>\n<li><strong>`trail_line.geojson`</strong> \u2014 the raw 15-section trail line, if you want it in GeoJSON form (e.g. for QGIS or a web map).</li>\n<li><strong>`poi_points.geojson`</strong> \u2014 the raw 621 points of interest in GeoJSON form.</li>\n</ul>\n<p>Source feature services (public, ArcGIS Online):</p>\n<ul>\n<li>Trail line: `https://services9.arcgis.com/AOi02k7Bi1lNXysu/arcgis/rest/services/coastpath_sections/FeatureServer/0`</li>\n<li>Points of interest: `https://services9.arcgis.com/AOi02k7Bi1lNXysu/arcgis/rest/services/nt_po_agol_XYTableToPoint1/FeatureServer/0`</li>\n</ul>\n<h3>POI category breakdown (621 total)</h3>\n<table>\n<thead><tr><th>Category</th><th>Count</th></tr></thead>\n<tbody>\n<tr><td>Walking Access Point</td><td>170</td></tr>\n<tr><td>Caution</td><td>102</td></tr>\n<tr><td>Information</td><td>91</td></tr>\n<tr><td>Car Park / Public Transport Access</td><td>81</td></tr>\n<tr><td>Beach</td><td>69</td></tr>\n<tr><td>Facilities</td><td>65</td></tr>\n<tr><td>Worth a look</td><td>43</td></tr>\n</tbody></table>\n<h3>Other official map tools (not scraped \u2014 external interactive tools, not static content)</h3>\n<ul>\n<li>The site links out to the <strong>UK National Trails</strong> website for a point-of-interest map + custom itinerary planner.</li>\n<li>Google Street View coverage of the whole trail is referenced but lives entirely on Google's platform.</li>\n</ul>\n<p><a href=\"#\" class=\"section-link\" data-section=\"overview\">\u2190 Back to overview</a></p>";
+
+const HOWTO_HTML = `
+<h2>How to use this map</h2>
+<p>A quick guide to everything on this page.</p>
+<h3>Sidebar</h3>
+<ul>
+<li><strong>Layers</strong> &mdash; the trail line and map tiles are on by default. Tick <strong>Official section start/end points</strong> to show a flag at the start/end of each of the 15 official sections, or <strong>Subsection waypoints</strong> for every named stop in between.</li>
+<li><strong>Sections</strong> &mdash; the 15 official sections of the trail, north to south. Click a section's name to open its notes (distance, difficulty, hazards, facilities); click the small &#8599; icon to open that section's page on the official Pembrokeshire Coast Path website in a new tab. Click the small triangle to expand a section into its individual named stops, each with a running distance total.</li>
+<li><strong>Points of interest</strong> &mdash; tick a category (car parks, beaches, facilities, cautions, "worth a look" sites, etc.) to show its markers on the map. Click any marker for details.</li>
+</ul>
+<h3>Map buttons</h3>
+<ul>
+<li><strong>&#128205; Find me</strong> &mdash; shows your live location on the map and how far you are from the next few official stopping points.</li>
+<li><strong>&#128506;&#65039; Whole trail</strong> &mdash; zooms back out to fit the entire trail.</li>
+<li><strong>&#128207; Check distance</strong> &mdash; click any two points (or existing markers) to measure the trail distance and estimated walking time between them.</li>
+<li><strong>&#128197;&#65039; Daily planner</strong> &mdash; click a starting point, then click each day's stopping point in turn to build a multi-day walking itinerary, with estimated distance and time per day. Plans can be saved and viewed again later.</li>
+</ul>
+<h3>Show our route</h3>
+<p>The <strong>&#128205; Show our route</strong> button near the top of the sidebar reveals the author's own real GPS-tracked walk of the entire trail &mdash; day by day, including any detours &mdash; on top of the official trail line.</p>
+<p><a href="#" class="section-link" data-section="overview">&larr; Back to overview</a></p>`;
 
 const CAT_STYLE = {
   "Information":            { color: "#2a78d6", icon: "i" },
@@ -1628,7 +1648,7 @@ function buildDayStopLayer() {
   });
   return group;
 }
-makeToggle("Mum's PDF start/endpoints", '🚩', true, (on) => {
+makeToggle("Mum's PDF start/endpoints", '🚩', false, (on) => {
   if (on) {
     if (!dayStopLayer) dayStopLayer = buildDayStopLayer();
     dayStopLayer.addTo(map);
@@ -1674,7 +1694,7 @@ function buildRealEndpointsLayer() {
   });
   return group;
 }
-makeToggle('Real daily endpoints (from GPS)', '✅', true, (on) => {
+makeToggle('Real daily endpoints (from GPS)', '✅', false, (on) => {
   if (on) {
     if (!realEndpointsLayer) realEndpointsLayer = buildRealEndpointsLayer();
     realEndpointsLayer.addTo(map);
@@ -2581,6 +2601,7 @@ function toggleSubsections(sid) {
 document.querySelectorAll('.section-item[data-section="overview"], .section-item[data-section="mapnotes"]').forEach(el => {
   el.onclick = () => showSection(el.dataset.section);
 });
+document.getElementById('howto-btn').onclick = () => { openSidebar(); showSection('howto'); };
 
 document.getElementById('back-link').onclick = () => {
   document.getElementById('notes-panel').style.display = 'none';
@@ -2596,6 +2617,7 @@ function showSection(id) {
   let html;
   if (id === 'overview') html = OVERVIEW_HTML;
   else if (id === 'mapnotes') html = MAPNOTES_HTML;
+  else if (id === 'howto') html = HOWTO_HTML;
   else html = NOTES[id] || '<p>No notes found.</p>';
   content.innerHTML = html;
   // These notes are our own condensed summary, not a replacement for the
