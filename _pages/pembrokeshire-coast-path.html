@@ -1085,6 +1085,7 @@ a.section-link { cursor: pointer; }
   <button class="btn" id="sidebar-toggle">☰ Sections &amp; layers</button>
   <h1>Pembrokeshire Coast Path</h1>
   <button class="btn small" id="howto-btn">❓ How to use</button>
+  <button class="btn small" id="show-route-header-btn" title="See the precise route (and any detours) we actually walked, day by day">📍 Show our route</button>
   <button class="btn small dev-only" id="daily-report-btn">Generate daily report</button>
   <div id="progress-bar-wrap" class="route-only" title="Distance reached so far, measured to the end of the most recently recorded day">
     <div id="progress-bar-track"><div id="progress-bar-fill"></div></div>
@@ -1418,10 +1419,19 @@ function setDevMode(on) {
   // effect immediately instead of only after a page reload.
   if (typeof renderSectionsList === 'function') renderSectionsList();
 }
+// Single source of truth for every UI representation of this state - the
+// prominent sidebar row AND the smaller header button both call this rather
+// than touching showOurRoute/the DOM directly, so the two never drift out
+// of sync with each other.
 function setShowOurRoute(on) {
   showOurRoute = on;
   document.body.classList.toggle('show-route-on', on);
-  document.getElementById('show-route-row').classList.toggle('on', on);
+  const row = document.getElementById('show-route-row');
+  if (row) row.classList.toggle('on', on);
+  const checkbox = document.getElementById('show-route-toggle');
+  if (checkbox) checkbox.checked = on;
+  const headerBtn = document.getElementById('show-route-header-btn');
+  if (headerBtn) headerBtn.classList.toggle('active', on);
   try { localStorage.setItem(SHOW_ROUTE_KEY, on ? '1' : '0'); } catch (e) { /* ignore */ }
   ROUTE_ONLY_TOGGLES.forEach(({ control, rawOnToggle }) => rawOnToggle(showOurRoute && control.isOn()));
 }
@@ -3269,9 +3279,12 @@ devModeToggle.onchange = (e) => setDevMode(e.target.checked);
 
 const showRouteToggle = document.getElementById('show-route-toggle');
 const showRouteRow = document.getElementById('show-route-row');
+const showRouteHeaderBtn = document.getElementById('show-route-header-btn');
 showRouteToggle.checked = showOurRoute; // reflect whatever was restored from localStorage at load
 showRouteRow.classList.toggle('on', showOurRoute);
+showRouteHeaderBtn.classList.toggle('active', showOurRoute);
 showRouteToggle.onchange = (e) => setShowOurRoute(e.target.checked);
+showRouteHeaderBtn.onclick = () => setShowOurRoute(!showOurRoute);
 </script>
 </body>
 </html>
