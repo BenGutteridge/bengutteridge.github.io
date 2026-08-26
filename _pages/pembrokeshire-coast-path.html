@@ -713,6 +713,21 @@ svg.leaflet-image-layer.leaflet-interactive path {
 
 * { box-sizing: border-box; }
 html, body { height: 100%; margin: 0; }
+/* Dev mode: personal-walk-record features (real GPS tracks, daily report,
+   progress bar, section strikeouts) stay in the page but hidden by default -
+   the default view is a general-purpose planning tool for anyone. Nothing
+   here is deleted, just switched off until body.dev-mode-on is set. */
+/* !important on both sides: some dev-only elements have their own ID-based
+   display rules elsewhere (e.g. #progress-bar-wrap { display: flex }), whose
+   specificity would otherwise beat a plain .dev-only class. The "on" rules
+   restore the correct display value per element type - display:revert would
+   NOT do this, since revert falls back to the user-agent default (e.g. block
+   for a div), not to flex/etc from another author-stylesheet rule. */
+.dev-only { display: none !important; }
+body.dev-mode-on button.dev-only { display: inline-block !important; }
+body.dev-mode-on label.dev-only { display: flex !important; }
+body.dev-mode-on div.dev-only { display: block !important; }
+body.dev-mode-on #progress-bar-wrap.dev-only { display: flex !important; }
 body {
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   color: var(--text-primary);
@@ -854,6 +869,13 @@ header .sub { color: var(--text-secondary); font-size: 12px; }
   margin-bottom: 4px;
 }
 .section-item:hover { background: var(--surface-2); }
+#dev-mode-row {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px; margin-top: 8px;
+  font-size: 11px; color: var(--muted);
+  cursor: pointer; user-select: none;
+}
+#dev-mode-row input { margin: 0; }
 .section-item.active {
   background: var(--surface-2);
   border-color: var(--accent);
@@ -1022,8 +1044,8 @@ a.section-link { cursor: pointer; }
   <button class="btn" id="sidebar-toggle">☰ Sections &amp; layers</button>
   <h1>Pembrokeshire Coast Path</h1>
   <span class="sub">Offline trail map — 15 sections · 621 points of interest · live GPS</span>
-  <button class="btn small" id="daily-report-btn">Generate daily report</button>
-  <div id="progress-bar-wrap" title="Distance reached so far, measured to the end of the most recently recorded day">
+  <button class="btn small dev-only" id="daily-report-btn">Generate daily report</button>
+  <div id="progress-bar-wrap" class="dev-only" title="Distance reached so far, measured to the end of the most recently recorded day">
     <div id="progress-bar-track"><div id="progress-bar-fill"></div></div>
     <span id="progress-bar-label">…</span>
   </div>
@@ -1038,13 +1060,15 @@ a.section-link { cursor: pointer; }
         <button class="btn small" id="hide-all-btn">Hide all</button>
       </div>
       <div id="base-layers-mount"></div>
-      <h2>Actual walked route</h2>
-      <div id="overall-pace-stats" class="pace-summary"></div>
-      <div class="toggle-all-row">
-        <button class="btn small" id="show-all-tracks-btn">All days</button>
-        <button class="btn small" id="hide-all-tracks-btn">No days</button>
+      <div class="dev-only">
+        <h2>Actual walked route</h2>
+        <div id="overall-pace-stats" class="pace-summary"></div>
+        <div class="toggle-all-row">
+          <button class="btn small" id="show-all-tracks-btn">All days</button>
+          <button class="btn small" id="hide-all-tracks-btn">No days</button>
+        </div>
+        <div id="real-tracks-mount"></div>
       </div>
-      <div id="real-tracks-mount"></div>
       <h2>Sections</h2>
       <div class="section-item" data-section="overview">
         <span class="num">·</span> Overview &amp; planning notes
@@ -1056,6 +1080,9 @@ a.section-link { cursor: pointer; }
       <div class="section-item" data-section="mapnotes">
         <span class="num">·</span> About this map's data
       </div>
+      <label id="dev-mode-row" title="Shows the personal record of our own walk - real GPS tracks, daily report, progress">
+        <input type="checkbox" id="dev-mode-toggle"> Show our route
+      </label>
     </div>
     <div id="notes-panel">
       <span class="back-link" id="back-link">&larr; back to section list</span>
@@ -1283,6 +1310,33 @@ function resolveInitial(key, fallback) {
   return SAVED_TOGGLE_STATE.hasOwnProperty(key) ? !!SAVED_TOGGLE_STATE[key] : fallback;
 }
 
+// ---------- dev mode ----------
+// Default view is a general-purpose planning tool for anyone walking the
+// Pembrokeshire Coast Path. Dev mode reveals the personal record of our own
+// walk - real GPS tracks, the daily report, progress bar, section
+// strikeouts - none of which is deleted, just hidden until switched on.
+// Nothing here is a secret, just deliberately not the default a random
+// visitor lands on.
+const DEV_MODE_KEY = 'pembsCoastMap.devMode.v1';
+let devMode = false;
+try { devMode = localStorage.getItem(DEV_MODE_KEY) === '1'; } catch (e) { devMode = false; }
+// {control, rawOnToggle} pairs whose underlying map layer must stay off
+// while devMode is off, even if the toggle's own checkbox says "on" (e.g.
+// restored from a previous session) - CSS alone can hide the row, but can't
+// stop a Leaflet layer from being added to the map.
+const DEV_ONLY_TOGGLES = [];
+document.body.classList.toggle('dev-mode-on', devMode); // sync before any dev-only rows exist to check against
+function setDevMode(on) {
+  devMode = on;
+  document.body.classList.toggle('dev-mode-on', on);
+  try { localStorage.setItem(DEV_MODE_KEY, on ? '1' : '0'); } catch (e) { /* ignore */ }
+  DEV_ONLY_TOGGLES.forEach(({ control, rawOnToggle }) => rawOnToggle(devMode && control.isOn()));
+  // Sections list's done/current/strikeout rendering depends on devMode, not
+  // just data computed once at load - re-render so a live toggle takes
+  // effect immediately instead of only after a page reload.
+  if (typeof renderSectionsList === 'function') renderSectionsList();
+}
+
 // ---------- POI markers ----------
 const activeCats = new Set(); // off by default; only "Sections" & base layers are on to start
 let poiLayer;
@@ -1375,14 +1429,20 @@ buildPoiLayer(); // re-apply now that any saved-on categories have been added to
 // ---------- base layer toggles: trail line, map tiles, section boundary points ----------
 const baseLayersMount = document.getElementById('base-layers-mount');
 
-function makeToggle(labelText, dotHtml, defaultOn, onToggle, mount, key) {
+function makeToggle(labelText, dotHtml, defaultOn, onToggle, mount, key, devOnly) {
   key = key || labelText;
   const initiallyOn = resolveInitial(key, defaultOn);
   const row = document.createElement('label');
-  row.className = 'toggle-row' + (initiallyOn ? '' : ' off');
+  row.className = 'toggle-row' + (initiallyOn ? '' : ' off') + (devOnly ? ' dev-only' : '');
   row.innerHTML = `<input type="checkbox" ${initiallyOn ? 'checked' : ''}><span class="dot" style="background:transparent;color:inherit;">${dotHtml}</span><span>${labelText}</span>`;
   const cb = row.querySelector('input');
   let state = initiallyOn;
+  // For devOnly toggles, the checkbox/state/persistence all behave normally
+  // (so a preference set while dev mode was on is remembered), but the real
+  // callback - which is what actually touches the map - only ever fires
+  // while devMode is on. setDevMode() re-fires it directly when dev mode
+  // flips, using this same gate.
+  const fireToggle = (on) => { if (!devOnly || devMode) onToggle(on); };
   const control = {
     key,
     isOn: () => state,
@@ -1391,19 +1451,20 @@ function makeToggle(labelText, dotHtml, defaultOn, onToggle, mount, key) {
       state = on;
       cb.checked = on;
       row.classList.toggle('off', !on);
-      onToggle(on);
+      fireToggle(on);
       persistToggleState();
     }
   };
   cb.onchange = (e) => {
     state = e.target.checked;
     row.classList.toggle('off', !state);
-    onToggle(state);
+    fireToggle(state);
     persistToggleState();
   };
   ALL_TOGGLES.push(control);
   (mount || baseLayersMount).appendChild(row);
-  onToggle(initiallyOn); // sync actual layer state to the resolved initial checkbox state, on or off
+  fireToggle(initiallyOn); // sync actual layer state to the resolved initial checkbox state, on or off
+  if (devOnly) DEV_ONLY_TOGGLES.push({ control, rawOnToggle: onToggle });
   return control;
 }
 
@@ -1524,7 +1585,7 @@ makeToggle('Real daily endpoints (from GPS)', '✅', true, (on) => {
   } else if (realEndpointsLayer) {
     map.removeLayer(realEndpointsLayer);
   }
-});
+}, undefined, undefined, true);
 
 // The official trail line cut into 19 roughly-even chunks using the official
 // sub-section distances from the md files (not raw GPS distance) to pick each
@@ -1554,7 +1615,7 @@ makeToggle('Trail by distance (19 even chunks)', `<span style="width:14px;height
   } else if (trailChunkLayer) {
     map.removeLayer(trailChunkLayer);
   }
-});
+}, undefined, undefined, true);
 
 // ---------- actual walked route (real GPS tracks, one entry per day recorded) ----------
 // Colors alternate down this list so consecutive days are visually distinct where
@@ -1777,7 +1838,7 @@ REAL_TRACKS.forEach((track, i) => {
   const control = makeToggle(label, swatch, true, (on) => {
     if (on) { if (!layer) layer = buildTrackLayer(); layer.addTo(map); }
     else if (layer) { map.removeLayer(layer); }
-  }, realTracksMount, `track:${track.date}`);
+  }, realTracksMount, `track:${track.date}`, true);
   REAL_TRACK_TOGGLES.push(control);
 });
 
@@ -2164,22 +2225,19 @@ function halfwayDescription() {
 let halfwayMarkerLayer = null;
 function buildHalfwayMarkerLayer() {
   const group = L.layerGroup();
-  const marker = L.marker([HALFWAY_INFO.lat, HALFWAY_INFO.lon], {
+  // Plain GPS dot, matching the "Subsection waypoints (approx.)" style -
+  // this is a general-trail landmark useful to any planner, so it stays
+  // visible in both modes, but without the "personal journal" emoji flair.
+  const marker = L.circleMarker([HALFWAY_INFO.lat, HALFWAY_INFO.lon], {
     pane: 'waymarkerPane',
-    icon: L.divIcon({
-      className: '',
-      html: `<div style="font-size:22px;line-height:1;transform:translate(-11px,-20px);">🏆</div>`,
-      iconSize: [22, 22],
-      iconAnchor: [11, 20],
-      popupAnchor: [0, -18],
-    })
+    radius: 6, color: '#fff', weight: 1.5, fillColor: '#e8a33d', fillOpacity: 1,
   });
-  marker.bindTooltip('Halfway point', { direction: 'top', offset: [0, -18] });
+  marker.bindTooltip('Halfway point', { direction: 'top', offset: [0, -8] });
   marker.bindPopup(`<b>Halfway point</b><div>${(HALFWAY_KM / 1.609344).toFixed(1)} mi / ${HALFWAY_KM.toFixed(1)} km</div><div>${escapeHtml(halfwayDescription())}</div><div class="poi-gr">Approx. position - interpolated along the trail from official leg mileage, not a surveyed point</div>`);
   group.addLayer(marker);
   return group;
 }
-makeToggle('Halfway point', '🏆', true, (on) => {
+makeToggle('Halfway point', '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#e8a33d;border:1.5px solid #fff;"></span>', true, (on) => {
   if (on) {
     if (!halfwayMarkerLayer) halfwayMarkerLayer = buildHalfwayMarkerLayer();
     halfwayMarkerLayer.addTo(map);
@@ -2200,22 +2258,16 @@ const DOBBYS_GRAVE = { lat: 51.6591, lon: -5.0639 };
 let dobbysGraveLayer = null;
 function buildDobbysGraveLayer() {
   const group = L.layerGroup();
-  const marker = L.marker([DOBBYS_GRAVE.lat, DOBBYS_GRAVE.lon], {
+  const marker = L.circleMarker([DOBBYS_GRAVE.lat, DOBBYS_GRAVE.lon], {
     pane: 'waymarkerPane',
-    icon: L.divIcon({
-      className: '',
-      html: `<div style="font-size:22px;line-height:1;transform:translate(-11px,-20px);">🧝</div>`,
-      iconSize: [22, 22],
-      iconAnchor: [11, 20],
-      popupAnchor: [0, -18],
-    })
+    radius: 6, color: '#fff', weight: 1.5, fillColor: '#e8a33d', fillOpacity: 1,
   });
-  marker.bindTooltip("Dobby's Grave", { direction: 'top', offset: [0, -18] });
+  marker.bindTooltip("Dobby's Grave", { direction: 'top', offset: [0, -8] });
   marker.bindPopup(`<b>Dobby's Grave ♡</b><div>Fan-made memorial in the dunes at the north end of Freshwater West beach - Harry Potter filming location (Shell Cottage, Deathly Hallows).</div><div class="poi-gr">Approx. position - converted from a published OS grid reference, not a surveyed point</div>`);
   group.addLayer(marker);
   return group;
 }
-makeToggle("Dobby's Grave", '🧝', true, (on) => {
+makeToggle("Dobby's Grave", '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#e8a33d;border:1.5px solid #fff;"></span>', true, (on) => {
   if (on) {
     if (!dobbysGraveLayer) dobbysGraveLayer = buildDobbysGraveLayer();
     dobbysGraveLayer.addTo(map);
@@ -2233,22 +2285,16 @@ const BOSHERSTON_LILY_PONDS = { lat: 51.6137066278177, lon: -4.92682943744636 };
 let lilyPondsLayer = null;
 function buildLilyPondsLayer() {
   const group = L.layerGroup();
-  const marker = L.marker([BOSHERSTON_LILY_PONDS.lat, BOSHERSTON_LILY_PONDS.lon], {
+  const marker = L.circleMarker([BOSHERSTON_LILY_PONDS.lat, BOSHERSTON_LILY_PONDS.lon], {
     pane: 'waymarkerPane',
-    icon: L.divIcon({
-      className: '',
-      html: `<div style="font-size:22px;line-height:1;transform:translate(-11px,-20px);">🪷</div>`,
-      iconSize: [22, 22],
-      iconAnchor: [11, 20],
-      popupAnchor: [0, -18],
-    })
+    radius: 6, color: '#fff', weight: 1.5, fillColor: '#e8a33d', fillOpacity: 1,
   });
-  marker.bindTooltip('Bosherston Lily Ponds', { direction: 'top', offset: [0, -18] });
+  marker.bindTooltip('Bosherston Lily Ponds', { direction: 'top', offset: [0, -8] });
   marker.bindPopup(`<b>Bosherston Lily Ponds</b><div>National Nature Reserve on the old Stackpole Estate - three limestone valleys dammed to form lakes, home to otters, water-fowl, dragonflies and water lilies (best in June).</div>`);
   group.addLayer(marker);
   return group;
 }
-makeToggle('Bosherston Lily Ponds', '🪷', true, (on) => {
+makeToggle('Bosherston Lily Ponds', '<span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:#e8a33d;border:1.5px solid #fff;"></span>', true, (on) => {
   if (on) {
     if (!lilyPondsLayer) lilyPondsLayer = buildLilyPondsLayer();
     lilyPondsLayer.addTo(map);
@@ -2341,17 +2387,26 @@ for (let i = 0; i < DAY_STOPS.length - 1; i++) {
 }
 
 const sectionsMount = document.getElementById('sections-mount');
+// Re-run on every dev-mode flip (see setDevMode) since dayDone/dayCurrent/
+// showPlain all depend on devMode, not just on data computed once at load.
+function renderSectionsList() {
+sectionsMount.innerHTML = '';
 MUM_DAYS.forEach(d => {
   const div = document.createElement('div');
   div.className = 'section-item';
   div.dataset.section = d.id;
 
-  const dayDone = d.lastLegIdx <= officialProgressIdx;
-  const dayCurrent = !dayDone && d.firstLegIdx < officialProgressIdx;
+  // Outside dev mode there's no "our progress" to annotate against, so every
+  // day renders the same plain, progress-independent way the dayDone branch
+  // already uses (own day mileage, no strikeouts) - not the current/future
+  // branches below, which are inherently relative to officialProgressIdx.
+  const dayDone = devMode && d.lastLegIdx <= officialProgressIdx;
+  const dayCurrent = devMode && !dayDone && d.firstLegIdx < officialProgressIdx;
+  const showPlain = !devMode || dayDone;
 
   let nameHtml, milesText;
-  if (dayDone) {
-    div.classList.add('done');
+  if (showPlain) {
+    if (dayDone) div.classList.add('done');
     nameHtml = `<span class="name">${nameWithFlag(d.fromName)} to ${nameWithFlag(d.toName)}</span>`;
     milesText = `${d.miles.toFixed(1)} mi`;
   } else if (dayCurrent) {
@@ -2376,8 +2431,9 @@ MUM_DAYS.forEach(d => {
   sub.className = 'subsection-list' + (dayDone ? '' : ' open');
   sub.id = `subsections-${d.id}`;
   const legs = LEG_LIST.slice(d.firstLegIdx + 1, d.lastLegIdx + 1).map((l, i) => ({ ...l, idx: d.firstLegIdx + 1 + i }));
-  if (dayDone) {
-    // completed day: plain historical breakdown, cumulative from the day's own start
+  if (showPlain) {
+    // no progress to annotate against (dev mode off) or a completed day:
+    // plain breakdown, cumulative from the day's own start
     let cumMi = 0;
     legs.forEach(l => {
       cumMi += l.mi;
@@ -2397,6 +2453,8 @@ MUM_DAYS.forEach(d => {
   }
   sectionsMount.appendChild(sub);
 });
+}
+renderSectionsList();
 
 function toggleSubsections(sid) {
   document.getElementById(`subsections-${sid}`).classList.toggle('open');
@@ -2673,6 +2731,7 @@ function fmtCalendarDate(d) {
 }
 
 let plannerActive = false;
+let plannerPickingStart = true; // true until the user clicks their starting point
 let plannerFrom = null; // { name, officialKm, rawKm, lat, lon }
 let plannerOriginalStart = null; // { name, lat, lon } - fixed for the whole plan
 let plannerStartDate = null; // Date - day 1 of the plan, defaults to today
@@ -2684,16 +2743,6 @@ const plannerBtn = document.getElementById('planner-btn');
 const plannerPanel = document.getElementById('planner-panel');
 const PLANNER_COLOR = '#7a5cff';
 
-function plannerPointFromProgress() {
-  const marker = LEG_MARKERS.find(m => m.name === OFFICIAL_PROGRESS_LEG_NAME);
-  return {
-    name: OFFICIAL_PROGRESS_LEG_NAME,
-    officialKm: officialProgressKm,
-    rawKm: marker ? marker.rawKm : 0,
-    lat: marker ? marker.lat : null,
-    lon: marker ? marker.lng : null,
-  };
-}
 // Day N's calendar date, counting from plannerStartDate (day 1 = today by
 // default) - a plain calendar-day offset, not tied to walking pace/rest
 // days, since the planner has no way to know which days the user actually
@@ -2706,25 +2755,22 @@ function dayDate(dayNum) {
 function startPlanner() {
   cancelDistanceCheck();
   plannerActive = true;
-  plannerFrom = plannerPointFromProgress();
-  plannerOriginalStart = { name: plannerFrom.name, lat: plannerFrom.lat, lon: plannerFrom.lon };
+  plannerPickingStart = true;
+  plannerFrom = null;
+  plannerOriginalStart = null;
   plannerStartDate = new Date();
   plannerDays = [];
   plannerCandidate = null;
   plannerCandidateMarker = null;
   if (plannerLayer) map.removeLayer(plannerLayer);
   plannerLayer = L.layerGroup().addTo(map);
-  if (plannerFrom.lat != null) {
-    const m = pointMarker({ lat: plannerFrom.lat, lon: plannerFrom.lon }, 'S', PLANNER_COLOR);
-    m.bindTooltip(escapeHtml(plannerFrom.name), { direction: 'top', offset: [0, -10] });
-    plannerLayer.addLayer(m);
-  }
   plannerBtn.classList.add('active');
-  plannerBtn.textContent = `🗓️ Click ${fmtCalendarDate(dayDate(1))}'s stop…`;
+  plannerBtn.textContent = '🗓️ Click your starting point…';
   renderPlannerPanel();
 }
 function cancelPlanner() {
   plannerActive = false;
+  plannerPickingStart = true;
   plannerFrom = null;
   plannerOriginalStart = null;
   plannerStartDate = null;
@@ -2740,9 +2786,25 @@ plannerBtn.onclick = () => {
   plannerActive ? cancelPlanner() : startPlanner();
 };
 function renderPlannerPanel() {
+  let html = `<span class="close-x" id="planner-close">&times;</span>`;
+  if (plannerPickingStart) {
+    html += `<h4>Daily planner — pick your start</h4>`;
+    if (plannerCandidate) {
+      const c = plannerCandidate;
+      html += `<div class="row"><span class="label">Start point</span><span class="val">${escapeHtml(c.displayName)}</span></div>`;
+      html += `<button class="btn small" id="planner-confirm-btn" style="width:100%;">✅ Confirm start point</button>`;
+    } else {
+      html += `<p style="margin:2px 0;color:var(--text-secondary);">Click anywhere near the trail to set your starting point - click around freely, only Confirm locks it in.</p>`;
+    }
+    plannerPanel.innerHTML = html;
+    plannerPanel.classList.add('show');
+    document.getElementById('planner-close').onclick = cancelPlanner;
+    if (plannerCandidate) document.getElementById('planner-confirm-btn').onclick = confirmPlannerStart;
+    return;
+  }
   const dayNum = plannerDays.length + 1;
   const dateStr = fmtCalendarDate(dayDate(dayNum));
-  let html = `<span class="close-x" id="planner-close">&times;</span><h4>Daily planner — ${dateStr}</h4>`;
+  html += `<h4>Daily planner — ${dateStr}</h4>`;
   html += `<p style="margin:2px 0;">From <b>${escapeHtml(plannerFrom.name)}</b>. Click a stop near the trail for ${dateStr}.</p>`;
   if (plannerCandidate) {
     const c = plannerCandidate;
@@ -2769,16 +2831,36 @@ function renderPlannerPanel() {
 function handlePlannerClick(latlng) {
   if (!plannerActive) return;
   const pt = pickPoint(latlng.lat, latlng.lng);
+  const bracket = bracketLegs(pt.officialKm);
+  const displayName = pt.name || `${bracket.miAfter.toFixed(1)}mi past ${bracket.afterName}`;
+  if (plannerPickingStart) {
+    plannerCandidate = { ...pt, displayName };
+    if (plannerCandidateMarker) { plannerLayer.removeLayer(plannerCandidateMarker); plannerCandidateMarker = null; }
+    plannerCandidateMarker = L.circleMarker([pt.lat, pt.lon], { radius: 7, color: '#fff', weight: 2, fillColor: PLANNER_COLOR, fillOpacity: 0.6 }).addTo(plannerLayer);
+    renderPlannerPanel();
+    return;
+  }
   const distKm = Math.abs(pt.officialKm - plannerFrom.officialKm);
   const distMi = distKm / 1.609344;
   const pace = overallPaceStats();
   const paceMph = pace ? pace.speedExclMph : null;
   const timeMin = paceMph ? distMi / paceMph * 60 : null;
-  const bracket = bracketLegs(pt.officialKm);
-  const displayName = pt.name || `${bracket.miAfter.toFixed(1)}mi past ${bracket.afterName}`;
   plannerCandidate = { ...pt, distKm, distMi, timeMin, displayName };
   if (plannerCandidateMarker) { plannerLayer.removeLayer(plannerCandidateMarker); plannerCandidateMarker = null; }
   plannerCandidateMarker = L.circleMarker([pt.lat, pt.lon], { radius: 7, color: '#fff', weight: 2, fillColor: PLANNER_COLOR, fillOpacity: 0.6 }).addTo(plannerLayer);
+  renderPlannerPanel();
+}
+function confirmPlannerStart() {
+  const c = plannerCandidate;
+  plannerFrom = { name: c.displayName, officialKm: c.officialKm, rawKm: c.rawKm, lat: c.lat, lon: c.lon };
+  plannerOriginalStart = { name: c.displayName, lat: c.lat, lon: c.lon };
+  plannerCandidate = null;
+  if (plannerCandidateMarker) { plannerLayer.removeLayer(plannerCandidateMarker); plannerCandidateMarker = null; }
+  const m = pointMarker({ lat: plannerFrom.lat, lon: plannerFrom.lon }, 'S', PLANNER_COLOR);
+  m.bindTooltip(escapeHtml(plannerFrom.name), { direction: 'top', offset: [0, -10] });
+  plannerLayer.addLayer(m);
+  plannerPickingStart = false;
+  plannerBtn.textContent = `🗓️ Click ${fmtCalendarDate(dayDate(1))}'s stop…`;
   renderPlannerPanel();
 }
 function confirmPlannerCandidate() {
@@ -2980,6 +3062,10 @@ document.getElementById('sidebar-toggle').onclick = () => {
   sidebarEl.classList.contains('open') ? closeSidebar() : openSidebar();
 };
 backdropEl.onclick = closeSidebar;
+
+const devModeToggle = document.getElementById('dev-mode-toggle');
+devModeToggle.checked = devMode; // reflect whatever was restored from localStorage at load
+devModeToggle.onchange = (e) => setDevMode(e.target.checked);
 </script>
 </body>
 </html>
