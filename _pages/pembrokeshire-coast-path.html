@@ -738,6 +738,11 @@ body.show-route-on button.route-only { display: inline-block !important; }
 body.show-route-on label.route-only { display: flex !important; }
 body.show-route-on div.route-only { display: block !important; }
 body.show-route-on #progress-bar-wrap.route-only { display: flex !important; }
+/* .clean-only is the inverse of .dev-only - visible by default (its own
+   normal display, e.g. .toggle-row's flex), hidden once dev mode is on -
+   for the handful of clean-version-only toggles that replace (not add to)
+   a dev-only one, so the two are never both present in the Layers list. */
+body.dev-mode-on .clean-only { display: none !important; }
 body {
   font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
   color: var(--text-primary);
@@ -1378,6 +1383,7 @@ try { devMode = localStorage.getItem(DEV_MODE_KEY) === '1'; } catch (e) { devMod
 // stop a Leaflet layer from being added to the map.
 const DEV_ONLY_TOGGLES = [];
 const ROUTE_ONLY_TOGGLES = [];
+const CLEAN_ONLY_TOGGLES = [];
 document.body.classList.toggle('dev-mode-on', devMode); // sync before any gated rows exist to check against
 document.body.classList.toggle('show-route-on', showOurRoute);
 function setDevMode(on) {
@@ -1385,6 +1391,7 @@ function setDevMode(on) {
   document.body.classList.toggle('dev-mode-on', on);
   try { localStorage.setItem(DEV_MODE_KEY, on ? '1' : '0'); } catch (e) { /* ignore */ }
   DEV_ONLY_TOGGLES.forEach(({ control, rawOnToggle }) => rawOnToggle(devMode && control.isOn()));
+  CLEAN_ONLY_TOGGLES.forEach(({ control, rawOnToggle }) => rawOnToggle(!devMode && control.isOn()));
   // Sections list's done/current/strikeout rendering depends on devMode, not
   // just data computed once at load - re-render so a live toggle takes
   // effect immediately instead of only after a page reload.
@@ -1491,11 +1498,14 @@ buildPoiLayer(); // re-apply now that any saved-on categories have been added to
 const baseLayersMount = document.getElementById('base-layers-mount');
 
 // gate: undefined (always live), 'dev' (behind the small Dev mode toggle),
-// or 'route' (behind the prominent Show our route toggle).
+// 'route' (behind the prominent Show our route toggle), or 'clean' (the
+// inverse of 'dev' - visible whenever dev mode is OFF, for a handful of
+// clean-version-only replacements of a dev-only layer, e.g. the public
+// single red-flag boundary toggle vs dev's original two).
 function makeToggle(labelText, dotHtml, defaultOn, onToggle, mount, key, gate) {
   key = key || labelText;
   const initiallyOn = resolveInitial(key, defaultOn);
-  const gateClass = gate === 'dev' ? ' dev-only' : gate === 'route' ? ' route-only' : '';
+  const gateClass = gate === 'dev' ? ' dev-only' : gate === 'route' ? ' route-only' : gate === 'clean' ? ' clean-only' : '';
   const row = document.createElement('label');
   row.className = 'toggle-row' + (initiallyOn ? '' : ' off') + gateClass;
   row.innerHTML = `<input type="checkbox" ${initiallyOn ? 'checked' : ''}><span class="dot" style="background:transparent;color:inherit;">${dotHtml}</span><span>${labelText}</span>`;
@@ -1506,7 +1516,7 @@ function makeToggle(labelText, dotHtml, defaultOn, onToggle, mount, key, gate) {
   // real callback - which is what actually touches the map - only ever
   // fires while the relevant gate (devMode/showOurRoute) is open.
   // setDevMode()/setShowOurRoute() re-fire it directly when their gate flips.
-  const gateOpen = () => gate === 'dev' ? devMode : gate === 'route' ? showOurRoute : true;
+  const gateOpen = () => gate === 'dev' ? devMode : gate === 'route' ? showOurRoute : gate === 'clean' ? !devMode : true;
   const fireToggle = (on) => { if (gateOpen()) onToggle(on); };
   const control = {
     key,
@@ -1531,6 +1541,7 @@ function makeToggle(labelText, dotHtml, defaultOn, onToggle, mount, key, gate) {
   fireToggle(initiallyOn); // sync actual layer state to the resolved initial checkbox state, on or off
   if (gate === 'dev') DEV_ONLY_TOGGLES.push({ control, rawOnToggle: onToggle });
   if (gate === 'route') ROUTE_ONLY_TOGGLES.push({ control, rawOnToggle: onToggle });
+  if (gate === 'clean') CLEAN_ONLY_TOGGLES.push({ control, rawOnToggle: onToggle });
   return control;
 }
 
@@ -1542,15 +1553,17 @@ makeToggle('Map tiles (needs internet)', '🗺️', true, (on) => {
   if (on) { tileLayer.addTo(map); } else { map.removeLayer(tileLayer); }
 });
 
-let boundaryLayer = null;
-function buildBoundaryLayer() {
+// Shared by both the clean (red flag) and dev (chequered flag) boundary
+// marker layers below - same BOUNDARIES data, just a different emoji/offset
+// so the two don't collide visually if ever shown at once.
+function buildBoundaryLayer(emoji, fontSize, offset) {
   const group = L.layerGroup();
   BOUNDARIES.forEach(b => {
     const marker = L.marker([b.lat, b.lng], {
       pane: 'waymarkerPane',
       icon: L.divIcon({
         className: '',
-        html: `<div style="font-size:20px;line-height:1;transform:translate(-2px,-18px);">🏁</div>`,
+        html: `<div style="font-size:${fontSize}px;line-height:1;transform:translate(${offset});">${emoji}</div>`,
         iconSize: [22, 22],
         iconAnchor: [2, 20],
         popupAnchor: [4, -14],
@@ -1564,14 +1577,31 @@ function buildBoundaryLayer() {
   });
   return group;
 }
+// Clean/public version: the only section-boundary marker toggle a random
+// visitor sees - red flag, official BOUNDARIES data only, no Mum's PDF
+// layer alongside it (that's dev-only below).
+let cleanBoundaryLayer = null;
+makeToggle('Official section start/end points (15)', '🚩', false, (on) => {
+  if (on) {
+    if (!cleanBoundaryLayer) cleanBoundaryLayer = buildBoundaryLayer('🚩', 18, '10px,-8px');
+    cleanBoundaryLayer.addTo(map);
+  } else if (cleanBoundaryLayer) {
+    map.removeLayer(cleanBoundaryLayer);
+  }
+}, undefined, undefined, 'clean');
+
+// Dev version: preserved exactly as originally built - chequered flag for
+// official boundaries plus a separate red-flag layer for Mum's 18-day plan
+// (DAY_STOPS), which mostly but not entirely coincides with BOUNDARIES.
+let boundaryLayer = null;
 makeToggle('Official section start/end points (15)', '🏁', false, (on) => {
   if (on) {
-    if (!boundaryLayer) boundaryLayer = buildBoundaryLayer();
+    if (!boundaryLayer) boundaryLayer = buildBoundaryLayer('🏁', 20, '-2px,-18px');
     boundaryLayer.addTo(map);
   } else if (boundaryLayer) {
     map.removeLayer(boundaryLayer);
   }
-});
+}, undefined, undefined, 'dev');
 
 // 16 of these 19 points sit at the exact same coordinate as an official
 // boundary above (16 official boundaries are also day-plan stops); offset the
@@ -1605,7 +1635,7 @@ makeToggle("Mum's PDF start/endpoints", '🚩', true, (on) => {
   } else if (dayStopLayer) {
     map.removeLayer(dayStopLayer);
   }
-});
+}, undefined, undefined, 'dev');
 
 // Real daily start/end points, derived directly from REAL_TRACKS (excludes
 // any "estimated" entries with no actual GPS) so this grows automatically
@@ -1651,7 +1681,7 @@ makeToggle('Real daily endpoints (from GPS)', '✅', true, (on) => {
   } else if (realEndpointsLayer) {
     map.removeLayer(realEndpointsLayer);
   }
-}, undefined, undefined, 'route');
+}, undefined, undefined, 'dev'); // redundant with the per-day track colours/dots already shown by "Show our route"
 
 // The official trail line cut into 19 roughly-even chunks using the official
 // sub-section distances from the md files (not raw GPS distance) to pick each
@@ -1681,7 +1711,7 @@ makeToggle('Trail by distance (19 even chunks)', `<span style="width:14px;height
   } else if (trailChunkLayer) {
     map.removeLayer(trailChunkLayer);
   }
-}, undefined, undefined, 'route');
+}, undefined, undefined, 'dev');
 
 // ---------- actual walked route (real GPS tracks, one entry per day recorded) ----------
 // Colors alternate down this list so consecutive days are visually distinct where
@@ -1955,7 +1985,7 @@ document.getElementById('report-copy-btn').onclick = () => {
   const el = document.getElementById('overall-pace-stats');
   if (agg) {
     el.innerHTML =
-      `Avg pace so far (${agg.days} day${agg.days === 1 ? '' : 's'}, ${agg.totalMi.toFixed(1)} mi official): ` +
+      `Avg pace (${agg.days} day${agg.days === 1 ? '' : 's'}, ${agg.totalMi.toFixed(1)} mi official): ` +
       `<b>${agg.speedInclMph.toFixed(1)} / ${agg.speedExclMph.toFixed(1)} mph</b> (incl./excl. breaks)`;
   } else {
     el.style.display = 'none';
@@ -2056,9 +2086,9 @@ function updateFindMePanel(curLat, curLon) {
   let html = closeBtn + `<h4>Progress from today's start</h4>`;
   html += `<div class="row"><span class="label">Today so far</span><span class="val">${todaySoFar.toFixed(1)} km</span></div>`;
 
-  const ahead = legsUpToDistance(currentOfficialKm, 10);
+  const ahead = legsUpToDistance(currentOfficialKm, 15);
   if (ahead.length) {
-    html += `<h4 style="margin-top:6px;">Stopping points ahead (~10mi)</h4>`;
+    html += `<h4 style="margin-top:6px;">Stopping points ahead (~15mi)</h4>`;
     ahead.forEach(f => {
       let flags = '';
       if (BOUNDARY_LEG_NAMES.has(f.name)) flags += ' \u{1F3C1}';
@@ -2456,7 +2486,7 @@ function renderCleanSectionsList() {
       cumMi += l.mi;
       const row = document.createElement('div');
       row.className = 'subsection-row';
-      row.innerHTML = `<span>${escapeHtml(l.name)} \u{1F6A9}</span><span class="val">${cumMi.toFixed(1)} mi</span>`;
+      row.innerHTML = `<span>${escapeHtml(l.name)}</span><span class="val">${cumMi.toFixed(1)} mi</span>`;
       sub.appendChild(row);
     });
     sectionsMount.appendChild(sub);
