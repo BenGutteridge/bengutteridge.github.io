@@ -4,6 +4,20 @@ title: "Publications"
 permalink: /publications/
 author_profile: true
 ---
+### [Can Graph Foundation Models Generalize Over Architecture? (2026)](https://arxiv.org/abs/2603.22984)
+
+Accepted to the ICLR-26 Workshop on Geometry-grounded Representation Learning and Generative Modeling (GRaM), Rio de Janeiro, Brazil, 2026. Full-length paper in PMLR 326.
+
+**Benjamin Gutteridge**, Michael Bronstein, Xiaowen Dong
+
+### [Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription (2026)](https://arxiv.org/abs/2502.20295)
+
+Accepted to the Conference on Language Modeling (COLM 2026), San Francisco, California, USA.
+
+Earlier version presented (oral) at the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25), Philadelphia, Pennsylvania, USA, 2025
+
+**Benjamin Gutteridge**, Matthew Jackson, Toni Kukurin, Xiaowen Dong
+
 ### [On Measuring Long-Range Interactions in Graph Neural Networks (2025)](https://arxiv.org/abs/2506.05971)
 
 Accepted to the 42nd International Conference on Machine Learning (ICML 2025), Vancouver, Canada.
@@ -12,14 +26,9 @@ Jacob Bamberger\*, **Benjamin Gutteridge**\*, Scott le Roux\*, Xiaowen Dong, Mic
 
 ### [On Vanishing Gradients, Over-Smoothing, and Over-Squashing in GNNs: Bridging Recurrent and Graph Learning (2025)](https://arxiv.org/abs/2502.10818)
 
+Accepted to the 39th Conference on Neural Information Processing Systems (NeurIPS 2025).
+
 Álvaro Arroyo\*, Alessio Gravina\*, **Benjamin Gutteridge**, Federico Barbero, Claudio Gallicchio, Xiaowen Dong, Michael Bronstein, Pierre Vandergheynst (\* indicates equal contribution)
-
-### [Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription (2024)](https://arxiv.org/abs/2502.20295)
-
-Presented at the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25), Philadelphia, Pennsylvania, USA, 2025
-
-**Benjamin Gutteridge**, Matthew Jackson, Toni Kukurin, Xiaowen Dong
-
 
 ### [DRew: Dynamically Rewired Message Passing with Delay (2023)](https://arxiv.org/abs/2305.08018)
 
@@ -29,7 +38,7 @@ Accepted to the 40th International Conference on Machine Learning (ICML 2023), H
 
 ### [HumBugDB: A Large-scale Acoustic Mosquito Dataset (2021)](https://arxiv.org/abs/2110.07607) 
 
-Accepted to the 35th Conference on Neural Information Processing Systems (NeurIPS 2021) Track on Datasets and Benchmarks.
+Accepted to the 35th Conference on Neural Information Processing Systems (NeurIPS 2021) Track on Datasets and Benchmarks (Oral).
 
 Kiskin, I., Sinka, M., Cobb, A.D., Rafique, W., Wang, L., Zilli, D., **Gutteridge, B.**, Dam, R., Marinos, T., Li, Y. and Msaky, D., 2021. HumBugDB: A Large-scale Acoustic Mosquito Dataset. arXiv preprint arXiv:2110.07607.
 

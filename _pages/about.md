@@ -8,25 +8,26 @@ redirect_from:
   - /about.html
 ---
 
-I am a final-year DPhil student in the Machine Learning Research Group at the University of Oxford, and a member of the Autonomous Intelligent Machines and Systems Centre for Doctoral Training ([AIMS CDT](https://aims.robots.ox.ac.uk/)). 
-I am supervised by Xiaowen Dong and Michael Bronstein.
+I am a machine learning researcher. I recently finished my DPhil at the University of Oxford, supervised by Xiaowen Dong and Michael Bronstein, as a member of the Autonomous Intelligent Machines and Systems Centre for Doctoral Training ([AIMS CDT](https://aims.robots.ox.ac.uk/)).
 
-My research is broadly focused on graph neural networks (GNNs) and LLMs, in particular:
-- Message-passing neural networks, graph Transformers, and their properties
-- Long-range interactions and the effective measurement of range in GNNs
+My research is on learning from relational and structured data (graphs, molecules, sequences, documents), with a focus on long-range interactions, and on long-context reasoning in LLMs. In particular:
+- Message-passing neural networks, graph Transformers and graph foundation models
+- Long-range interactions, and measuring range in GNNs
 - LLMs, particularly for long contexts
-- AI for document processing, including OCR/transcription, particulary with multi-modal LLMs
+- AI for document processing, including handwriting transcription with multi-modal LLMs
 
-I previously worked on the [HumBug](https://humbug.ox.ac.uk/) project, which uses deep learning to detect and identify mosquito species by their
-flight tone using budget smartphones. I completed my MEng in Engineering Science, specialising in information engineering, at the University of
-Oxford, and was supervised by Michael Osborne in my final-year project.
+Earlier, I worked on the [HumBug](https://humbug.ox.ac.uk/) project, which detects and classifies mosquito species from phone recordings, and completed my MEng in Engineering Science at Oxford.
+
+Find my CV [here](/files/Gutteridge_CV_Nov_2026.pdf).
 
 In my spare time I enjoy [reading books](https://www.goodreads.com/user/show/43932939-ben-gutteridge), [watching films](https://letterboxd.com/bengutteridge/), playing and GMing D&D and other TTRPGs, and exploring new pubs, especially those with real ale.
 I maintain a table of ratings and useful information about every pub in Oxford [here](/pubs/).
 
 ---
 
-**9/7/2026:** [*Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription*](https://arxiv.org/abs/2502.20295) accepted to COLM (the Conference On Language Modeling) 2026 in San Francisco!
+**11/09/2026:** Passed my viva (DPhil defence) with minor corrections! 🎉
+
+**09/07/2026:** [*Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription*](https://arxiv.org/abs/2502.20295) accepted to COLM (the Conference On Language Modeling) 2026 in San Francisco!
 
 **26/04/2026:** Presented my paper *"Can Graph Foundation Models Generalize Over Architecture?"* as a poster at the ICLR-26 Workshop on Geometry-grounded Representation Learning and Generative Modeling (GRaM) in Rio de Janeiro 🇧🇷. Check out the [poster](/files/GOBLIN-POSTER.pdf) and the [paper](https://arxiv.org/abs/2603.22984)!
 
@@ -34,9 +35,13 @@ I maintain a table of ratings and useful information about every pub in Oxford [
 
 **02/03/2026:** *"Can Graph Foundation Models Generalize Over Architecture?"* accepted to the ICLR-26 Workshop on Geometry-grounded Representation Learning and Generative Modeling (GRaM) in Rio de Janeiro as a full-length PMLR proceedings paper.
 
+**28/12/2025:** [Best Books of 2025](/posts/2025/12/28/)
+
 **02/07/2025:** Started return internship in the Deep Learning team at [QuantCo](https://www.quantco.com/).
 
 **01/05/2025:** "[On Measuring Long-Range Interactions in Graph Neural Networks](https://arxiv.org/abs/2506.05971)", a co-first-authored paper with Jacob Bamberger and Scott le Roux, accepted to ICML 2025.
+
+**31/12/2024:** [Best Books of 2024](/posts/2024/12/31/)
 
 **17/12/2024:** *Judge a Book by Its Cover: Investigating Multi-Modal LLMs for Multi-Page Handwritten Document Transcription* accepted to the AAAI-25 Workshop on Document Understanding and Intelligence (DocUI@AAAI-25) in Philadelphia.
 
